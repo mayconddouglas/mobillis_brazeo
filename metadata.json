@@ -1,0 +1,6 @@
+{
+  "name": "RouteFinance",
+  "description": "Dashboard financeiro pessoal voltado para entregadores de aplicativo, permitindo controle de ganhos, gastos, metas, carteiras e plataformas.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
