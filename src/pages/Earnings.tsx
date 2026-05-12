@@ -330,10 +330,15 @@ export default function Earnings() {
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogTrigger asChild>
-          <Button onClick={handleOpenAdd} className="fixed bottom-20 right-4 w-14 h-14 rounded-full shadow-xl bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center z-40 transition-transform active:scale-95">
-            <Plus size={24} />
-          </Button>
+        <DialogTrigger
+          render={
+            <Button
+              onClick={handleOpenAdd}
+              className="fixed bottom-20 right-4 w-14 h-14 rounded-full shadow-xl bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center z-40 transition-transform active:scale-95"
+            />
+          }
+        >
+          <Plus size={24} />
         </DialogTrigger>
         <DialogContent className="sm:max-w-md w-[calc(100%-32px)] mx-auto rounded-2xl p-6 max-h-[90vh] overflow-y-auto">
           <DialogHeader>

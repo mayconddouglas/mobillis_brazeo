@@ -120,10 +120,8 @@ function NotificationsSheet() {
 
   return (
     <Sheet>
-      <SheetTrigger asChild>
-        <div>
-          <ActionRow icon={<Bell size={18} />} label="Notificações" />
-        </div>
+      <SheetTrigger render={<button type="button" className="w-full text-left" />}>
+        <ActionRow icon={<Bell size={18} />} label="Notificações" />
       </SheetTrigger>
       <SheetContent side="bottom" className="h-[90vh] sm:h-auto rounded-t-3xl p-6">
         <SheetHeader className="mb-6 text-left">
@@ -147,10 +145,8 @@ function NotificationsSheet() {
 function PrivacySheet() {
   return (
     <Sheet>
-      <SheetTrigger asChild>
-        <div>
-          <ActionRow icon={<Shield size={18} />} label="Privacidade" />
-        </div>
+      <SheetTrigger render={<button type="button" className="w-full text-left" />}>
+        <ActionRow icon={<Shield size={18} />} label="Privacidade" />
       </SheetTrigger>
       <SheetContent side="bottom" className="h-[90vh] sm:h-auto rounded-t-3xl p-6">
         <SheetHeader className="mb-6 text-left">
@@ -184,10 +180,8 @@ function UserProfileSheet() {
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        <div>
-          <ActionRow icon={<User size={18} />} label="Meus Dados" />
-        </div>
+      <SheetTrigger render={<button type="button" className="w-full text-left" />}>
+        <ActionRow icon={<User size={18} />} label="Meus Dados" />
       </SheetTrigger>
       <SheetContent side="bottom" className="h-[90vh] sm:h-auto rounded-t-3xl p-6">
         <SheetHeader className="mb-6 text-left">
@@ -239,10 +233,8 @@ function MonthlyGoalsSheet({ month, year }: { month: number; year: number }) {
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        <div>
-          <ActionRow icon={<Target size={18} />} label="Metas Mensais" />
-        </div>
+      <SheetTrigger render={<button type="button" className="w-full text-left" />}>
+        <ActionRow icon={<Target size={18} />} label="Metas Mensais" />
       </SheetTrigger>
       <SheetContent side="bottom" className="h-[90vh] sm:h-auto rounded-t-3xl p-6">
         <SheetHeader className="mb-6 text-left">
@@ -279,20 +271,24 @@ function PlatformsSheet() {
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        <div>
-          <ActionRow icon={<Briefcase size={18} />} label="Plataformas de Trabalho" />
-        </div>
+      <SheetTrigger render={<button type="button" className="w-full text-left" />}>
+        <ActionRow icon={<Briefcase size={18} />} label="Plataformas de Trabalho" />
       </SheetTrigger>
       <SheetContent side="bottom" className="h-[90vh] sm:h-[80vh] rounded-t-3xl p-6 flex flex-col">
         <SheetHeader className="mb-6 text-left shrink-0 border-b pb-4">
           <div className="flex items-center justify-between">
             <SheetTitle>Suas Plataformas</SheetTitle>
             <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-              <DialogTrigger asChild>
-                <Button size="icon" variant="outline" className="w-8 h-8 rounded-full">
-                  <Plus size={16} />
-                </Button>
+              <DialogTrigger
+                render={
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    className="w-8 h-8 rounded-full"
+                  />
+                }
+              >
+                <Plus size={16} />
               </DialogTrigger>
               <DialogContent className="sm:max-w-md w-[calc(100%-32px)] mx-auto rounded-2xl p-6">
                 <DialogHeader>
@@ -380,20 +376,24 @@ function ExpenseCategoriesSheet() {
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        <div>
-          <ActionRow icon={<Tags size={18} />} label="Categorias de Gastos" />
-        </div>
+      <SheetTrigger render={<button type="button" className="w-full text-left" />}>
+        <ActionRow icon={<Tags size={18} />} label="Categorias de Gastos" />
       </SheetTrigger>
       <SheetContent side="bottom" className="h-[90vh] sm:h-[80vh] rounded-t-3xl p-6 flex flex-col">
         <SheetHeader className="mb-6 text-left shrink-0 border-b pb-4">
           <div className="flex items-center justify-between">
             <SheetTitle>Categorias</SheetTitle>
             <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-              <DialogTrigger asChild>
-                <Button size="icon" variant="outline" className="w-8 h-8 rounded-full">
-                  <Plus size={16} />
-                </Button>
+              <DialogTrigger
+                render={
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    className="w-8 h-8 rounded-full"
+                  />
+                }
+              >
+                <Plus size={16} />
               </DialogTrigger>
               <DialogContent className="sm:max-w-md w-[calc(100%-32px)] mx-auto rounded-2xl p-6">
                 <DialogHeader>
