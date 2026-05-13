@@ -113,7 +113,7 @@ export default function Earnings() {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('Tem certeza que deseja deletar este ganho?')) {
+    if (confirm('Tem certeza que deseja deletar esta receita?')) {
       await deleteEarning(id);
       setIsModalOpen(false);
     }
@@ -231,7 +231,7 @@ export default function Earnings() {
       {/* Platform Breakdown */}
       {platformFilter === 'all' && platformBreakdown.length > 0 && (
         <div className="space-y-3">
-          <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Desempenho por Plataforma</h3>
+          <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Desempenho por Fonte</h3>
           <div className="grid grid-cols-2 gap-3">
             {platformBreakdown.map(b => {
               const platform = platforms?.find(p => p.id === b.id);
@@ -298,7 +298,7 @@ export default function Earnings() {
                               Ref: {format(parseDateLocal(earning.cycle_start), 'dd/MM')} a {format(parseDateLocal(earning.cycle_end), 'dd/MM')}
                             </p>
                           ) : (
-                            <p className="text-xs text-muted-foreground line-clamp-1">{earning.note || 'Ganho diário'}</p>
+                            <p className="text-xs text-muted-foreground line-clamp-1">{earning.note || 'Receita'}</p>
                           )}
                           {(earning.cycle_start && earning.cycle_end && earning.note) && (
                             <p className="text-[10px] text-muted-foreground mt-0.5 max-w-[200px] truncate">{earning.note}</p>
@@ -360,7 +360,7 @@ export default function Earnings() {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="platform">Plataforma</Label>
+              <Label htmlFor="platform">Fonte de Renda</Label>
               <Select 
                 value={newEarning.platform_id} 
                 onValueChange={(val) => setNewEarning({...newEarning, platform_id: val})}
@@ -368,7 +368,7 @@ export default function Earnings() {
               >
                 <SelectTrigger className="h-12">
                   <SelectValue placeholder="Selecione a plataforma">
-                    {selectedPlatformMatch ? selectedPlatformMatch.name : (newEarning.platform_id ? 'Plataforma Deletada' : 'Selecione a plataforma')}
+                    {selectedPlatformMatch ? selectedPlatformMatch.name : (newEarning.platform_id ? 'Fonte removida' : 'Selecione a fonte')}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>

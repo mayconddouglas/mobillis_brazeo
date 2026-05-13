@@ -231,7 +231,7 @@ export default function Expenses() {
       <div className="bg-card border rounded-2xl p-6 text-center shadow-sm relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-400 to-rose-600"></div>
         <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">
-          Total {categoryFilter !== 'all' ? categories?.find(c => c.id === categoryFilter)?.name : 'Gasto'}
+          Total {categoryFilter !== 'all' ? categories?.find(c => c.id === categoryFilter)?.name : 'Despesas'}
         </p>
         <h2 className="text-4xl font-black font-mono text-red-500 tracking-tighter">
           {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(total)}
@@ -301,7 +301,7 @@ export default function Expenses() {
         </DialogTrigger>
         <DialogContent className="sm:max-w-md w-[calc(100%-32px)] mx-auto rounded-2xl p-6 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingExpense ? 'Editar Gasto' : 'Adicionar Gasto'}</DialogTitle>
+            <DialogTitle>{editingExpense ? 'Editar Despesa' : 'Adicionar Despesa'}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSaveExpense} className="space-y-5 mt-4">
             {formError && (
@@ -310,7 +310,7 @@ export default function Expenses() {
               </div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="amount">Valor Gasto (R$)</Label>
+              <Label htmlFor="amount">Valor da Despesa (R$)</Label>
               <Input 
                 id="amount" 
                 type="number" 
@@ -408,7 +408,7 @@ export default function Expenses() {
                 </Button>
               )}
               <Button type="submit" className="flex-1 h-12 font-bold text-base bg-red-500 hover:bg-red-600">
-                {saving ? 'Salvando...' : (editingExpense ? 'Salvar Edição' : 'Salvar Gasto')}
+                {saving ? 'Salvando...' : (editingExpense ? 'Salvar Edição' : 'Salvar Despesa')}
               </Button>
             </div>
           </form>

@@ -1,6 +1,6 @@
 {
-  "name": "RouteFinance",
-  "description": "Dashboard financeiro pessoal voltado para entregadores de aplicativo, permitindo controle de ganhos, gastos, metas, carteiras e plataformas.",
+  "name": "Brazeo Finanças",
+  "description": "Dashboard de finanças pessoais para qualquer pessoa, com controle de receitas, despesas, metas e contas.",
   "requestFramePermissions": [],
   "majorCapabilities": []
 }

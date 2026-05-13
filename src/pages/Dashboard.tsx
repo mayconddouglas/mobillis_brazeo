@@ -37,7 +37,7 @@ export default function Dashboard() {
       {/* Header */}
       <header className="flex justify-between items-center">
         <div>
-          <h1 className="text-xl font-bold tracking-tight">Bom dia, {user?.user_metadata?.name?.split(' ')[0] || 'Motorista'} 👋</h1>
+          <h1 className="text-xl font-bold tracking-tight">Olá, {user?.user_metadata?.name?.split(' ')[0] || 'pessoa'}.</h1>
           <p className="text-sm text-muted-foreground capitalize">{format(new Date(), "MMMM 'de' yyyy", { locale: ptBR })}</p>
         </div>
         <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -57,7 +57,7 @@ export default function Dashboard() {
           <div className="mt-6 space-y-4">
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs text-primary-foreground/90 font-medium">
-                <span>Meta de Ganhos</span>
+                <span>Meta de Receitas</span>
                 <span>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalEarnings)} / {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(earningGoal)}</span>
               </div>
               <Progress value={earningProgress} className="h-2 bg-primary-foreground/20" indicatorClassName="bg-white" />
@@ -65,7 +65,7 @@ export default function Dashboard() {
             
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs text-primary-foreground/90 font-medium">
-                <span>Limite de Gastos</span>
+                <span>Limite de Despesas</span>
                 <span>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalExpenses)} / {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(expenseLimit)}</span>
               </div>
               <Progress value={expenseProgress} className="h-2 bg-primary-foreground/20" indicatorClassName={expenseProgress > 80 ? "bg-red-400" : "bg-white"} />
@@ -82,7 +82,7 @@ export default function Dashboard() {
               <DollarSign size={20} />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground font-medium">Ganhos</p>
+              <p className="text-xs text-muted-foreground font-medium">Receitas</p>
               <p className="font-bold text-sm font-mono text-green-600">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalEarnings)}</p>
             </div>
           </CardContent>
@@ -94,7 +94,7 @@ export default function Dashboard() {
               <Receipt size={20} />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground font-medium">Gastos</p>
+              <p className="text-xs text-muted-foreground font-medium">Despesas</p>
               <p className="font-bold text-sm font-mono text-red-600">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalExpenses)}</p>
             </div>
           </CardContent>
@@ -106,7 +106,7 @@ export default function Dashboard() {
               <Package size={20} />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground font-medium">Entregas</p>
+              <p className="text-xs text-muted-foreground font-medium">Lançamentos</p>
               <p className="font-bold text-sm font-mono">{ earnings?.length || 0 }</p>
             </div>
           </CardContent>
@@ -126,7 +126,7 @@ export default function Dashboard() {
       </div>
 
       {/* Chart: Platforms */}
-      <h3 className="font-semibold text-sm tracking-tight mt-6">Ganhos por Plataforma</h3>
+      <h3 className="font-semibold text-sm tracking-tight mt-6">Receitas por Fonte</h3>
       <Card className="shadow-sm">
         <CardContent className="p-4">
           <div className="h-[200px] w-full">

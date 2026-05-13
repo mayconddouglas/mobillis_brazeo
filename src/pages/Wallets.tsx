@@ -158,7 +158,7 @@ export default function Wallets() {
   return (
     <div className="p-4 space-y-6 pb-24 relative min-h-screen">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-xl font-bold tracking-tight">Suas Carteiras</h1>
+        <h1 className="text-xl font-bold tracking-tight">Suas Contas</h1>
       </div>
 
       {/* Carousel */}
@@ -232,7 +232,7 @@ export default function Wallets() {
 
       {/* History */}
       <div className="mt-8">
-        <h3 className="font-semibold tracking-tight text-sm mb-4">Últimas Movimentações (Gastos)</h3>
+        <h3 className="font-semibold tracking-tight text-sm mb-4">Últimas Movimentações (Despesas)</h3>
         {recentMovements.length > 0 ? (
           <div className="space-y-3">
             {recentMovements.map(mov => {
@@ -248,7 +248,7 @@ export default function Wallets() {
                       </div>
                       <div>
                         <p className="font-semibold text-sm leading-tight">{mov.description}</p>
-                        <p className="text-xs text-muted-foreground">{category?.name || 'Gasto'} • {wallet?.name || 'Conta Deletada'} • {format(parseDateLocal(mov.date), "dd/MM")}</p>
+                        <p className="text-xs text-muted-foreground">{category?.name || 'Despesa'} • {wallet?.name || 'Conta removida'} • {format(parseDateLocal(mov.date), "dd/MM")}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
@@ -404,7 +404,7 @@ export default function Wallets() {
       <Dialog open={isTransferModalOpen} onOpenChange={setIsTransferModalOpen}>
         <DialogContent className="sm:max-w-md w-[calc(100%-32px)] mx-auto rounded-2xl p-6">
           <DialogHeader>
-            <DialogTitle>Transferir entre Carteiras</DialogTitle>
+            <DialogTitle>Transferir entre Contas</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSaveTransfer} className="space-y-4 mt-4">
             <div className="space-y-2">

@@ -62,7 +62,7 @@ export default function Settings() {
             <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${user?.id}`} className="w-14 h-14 rounded-full" />
           </div>
           <div className="flex-1">
-            <h2 className="font-bold text-lg">{profile?.name || user?.user_metadata?.name || 'Motorista'}</h2>
+            <h2 className="font-bold text-lg">{profile?.name || user?.user_metadata?.name || 'Usuário'}</h2>
             <p className="text-sm text-muted-foreground">{user?.email}</p>
           </div>
           <Button variant="ghost" size="icon" className="shrink-0">
@@ -153,7 +153,7 @@ function PrivacySheet() {
           <SheetTitle>Privacidade e Segurança</SheetTitle>
         </SheetHeader>
         <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">O RouteFinance trata os seus dados com a máxima segurança (Row Level Security no Supabase). Seus dados financeiros não são compartilhados com nenhuma entidade externa.</p>
+          <p className="text-sm text-muted-foreground">O Brazeo Finanças trata os seus dados com a máxima segurança (Row Level Security no Supabase). Seus dados financeiros não são compartilhados com nenhuma entidade externa.</p>
           <Button variant="outline" className="w-full h-12 font-bold mt-4">Li e concordo</Button>
         </div>
       </SheetContent>
@@ -242,11 +242,11 @@ function MonthlyGoalsSheet({ month, year }: { month: number; year: number }) {
         </SheetHeader>
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label>Meta de Ganhos (R$)</Label>
+            <Label>Meta de Receitas (R$)</Label>
             <Input type="number" value={earningGoal} onChange={e => setEarningGoal(e.target.value)} className="h-12" placeholder="Ex: 5000" />
           </div>
           <div className="space-y-2">
-            <Label>Limite de Gastos (R$)</Label>
+            <Label>Limite de Despesas (R$)</Label>
             <Input type="number" value={expenseLimit} onChange={e => setExpenseLimit(e.target.value)} className="h-12" placeholder="Ex: 1500" />
           </div>
           <Button onClick={handleSave} className="w-full h-12 font-bold mt-4">Salvar Metas</Button>
@@ -272,12 +272,12 @@ function PlatformsSheet() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger render={<button type="button" className="w-full text-left" />}>
-        <ActionRow icon={<Briefcase size={18} />} label="Plataformas de Trabalho" />
+        <ActionRow icon={<Briefcase size={18} />} label="Fontes de Renda" />
       </SheetTrigger>
       <SheetContent side="bottom" className="h-[90vh] sm:h-[80vh] rounded-t-3xl p-6 flex flex-col">
         <SheetHeader className="mb-6 text-left shrink-0 border-b pb-4">
           <div className="flex items-center justify-between">
-            <SheetTitle>Suas Plataformas</SheetTitle>
+            <SheetTitle>Fontes de Renda</SheetTitle>
             <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
               <DialogTrigger
                 render={
@@ -292,12 +292,12 @@ function PlatformsSheet() {
               </DialogTrigger>
               <DialogContent className="sm:max-w-md w-[calc(100%-32px)] mx-auto rounded-2xl p-6">
                 <DialogHeader>
-                  <DialogTitle>Nova Plataforma</DialogTitle>
+                  <DialogTitle>Nova Fonte</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 mt-4">
                   <div className="space-y-2">
                     <Label>Nome</Label>
-                    <Input value={newPlatform.name} onChange={e => setNewPlatform({...newPlatform, name: e.target.value})} className="h-12" placeholder="Ex: Uber, Lalamove" />
+                    <Input value={newPlatform.name} onChange={e => setNewPlatform({...newPlatform, name: e.target.value})} className="h-12" placeholder="Ex: Salário, Freelance, Aluguel" />
                   </div>
                   <div className="space-y-2">
                     <Label>Cor de Identificação</Label>
@@ -323,7 +323,7 @@ function PlatformsSheet() {
                       })}
                     </div>
                   </div>
-                  <Button onClick={handleAdd} className="w-full h-12 font-bold mt-2">Salvar Plataforma</Button>
+                  <Button onClick={handleAdd} className="w-full h-12 font-bold mt-2">Salvar Fonte</Button>
                 </div>
               </DialogContent>
             </Dialog>
@@ -377,7 +377,7 @@ function ExpenseCategoriesSheet() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger render={<button type="button" className="w-full text-left" />}>
-        <ActionRow icon={<Tags size={18} />} label="Categorias de Gastos" />
+        <ActionRow icon={<Tags size={18} />} label="Categorias de Despesas" />
       </SheetTrigger>
       <SheetContent side="bottom" className="h-[90vh] sm:h-[80vh] rounded-t-3xl p-6 flex flex-col">
         <SheetHeader className="mb-6 text-left shrink-0 border-b pb-4">
