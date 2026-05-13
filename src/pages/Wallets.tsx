@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { useWallets, useExpenses, useExpenseCategories, Wallet } from '../hooks';
+import React, { useState, useMemo } from 'react';
+import { useWallets, useExpenses, useExpenseCategories, useEarnings, Wallet } from '../hooks';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, Wallet as WalletIcon, ArrowLeftRight, CreditCard, Landmark, Edit2, Trash2, Tag, PlusCircle } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, isThisMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
   Dialog,
@@ -26,6 +26,7 @@ const parseDateLocal = (dateStr: string) => new Date(dateStr + 'T12:00:00');
 export default function Wallets() {
   const { data: wallets, addWallet, updateWallet, deleteWallet } = useWallets();
   const { data: expenses, deleteExpense } = useExpenses();
+  const { data: earnings } = useEarnings();
   const { data: categories } = useExpenseCategories();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -153,7 +154,19 @@ export default function Wallets() {
     }
   };
 
-  const recentMovements = expenses?.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 10) || [];
+  const recentMovements = useMemo(() => {
+    const expenseMovements = expenses
+      ?.filter(e => isThisMonth(parseDateLocal(e.date)))
+      .map(e => ({ ...e, type: 'expense' as const })) || [];
+    
+    const earningMovements = earnings
+      ?.filter(e => isThisMonth(parseDateLocal(e.date)))
+      .map(e => ({ ...e, type: 'income' as const })) || [];
+
+    return [...expenseMovements, ...earningMovements]
+      ?.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .slice(0, 10) || [];
+  }, [expenses, earnings]);
 
   return (
     <div className="p-4 space-y-6 pb-24 relative min-h-screen">
@@ -232,39 +245,32 @@ export default function Wallets() {
 
       {/* History */}
       <div className="mt-8">
-        <h3 className="font-semibold tracking-tight text-sm mb-4">Últimas Movimentações (Despesas)</h3>
+        <h3 className="font-semibold tracking-tight text-sm mb-4">Últimas Movimentações</h3>
         {recentMovements.length > 0 ? (
           <div className="space-y-3">
             {recentMovements.map(mov => {
               const category = categories?.find(c => c.id === mov.category_id);
               const wallet = wallets?.find(w => w.id === mov.wallet_id);
+              const isExpense = mov.type === 'expense';
               
               return (
                 <Card key={mov.id} className="shadow-sm border">
                   <CardContent className="p-3 pr-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-white shadow-sm" style={{ backgroundColor: category?.color || '#ef4444' }}>
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-white shadow-sm" style={{ backgroundColor: category?.color || (isExpense ? '#ef4444' : '#22c55e') }}>
                         <Tag size={18} />
                       </div>
                       <div>
-                        <p className="font-semibold text-sm leading-tight">{mov.description}</p>
-                        <p className="text-xs text-muted-foreground">{category?.name || 'Despesa'} • {wallet?.name || 'Conta removida'} • {format(parseDateLocal(mov.date), "dd/MM")}</p>
+                        <p className="font-semibold text-sm leading-tight">{isExpense ? (mov as any).description : ((mov as any).description || 'Receita')}</p>
+                        <p className="text-xs text-muted-foreground">{category?.name || (isExpense ? 'Despesa' : 'Receita')} • {wallet?.name || 'Conta removida'} • {format(parseDateLocal(mov.date), "dd/MM")}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
                       <div className="text-right">
-                        <p className="font-mono font-black text-red-500 text-sm">
-                          -{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(mov.amount)}
+                        <p className={`font-mono font-black text-sm ${isExpense ? 'text-red-500' : 'text-green-500'}`}>
+                          {isExpense ? '-' : '+'}{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(mov.amount)}
                         </p>
                       </div>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-red-50"
-                        onClick={() => handleDeleteExpense(mov.id, mov.amount, mov.wallet_id)}
-                      >
-                        <Trash2 size={16} />
-                      </Button>
                     </div>
                   </CardContent>
                 </Card>

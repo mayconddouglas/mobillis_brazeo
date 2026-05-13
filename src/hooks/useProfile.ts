@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 export interface Profile {
   id: string;
   name: string;
+  avatar_url?: string | null;
   created_at: string;
 }
 
@@ -15,7 +16,7 @@ export function useProfile() {
   const query = useQuery({
     queryKey: ['profile', user?.id],
     queryFn: async () => {
-      if (isDemo) return { id: user?.id, name: user?.user_metadata?.name || 'Demo User', created_at: new Date().toISOString() };
+      if (isDemo) return { id: user?.id, name: user?.user_metadata?.name || 'Demo User', avatar_url: user?.user_metadata?.avatar_url, created_at: new Date().toISOString() };
       
       // Try to get from profiles table
       const { data, error } = await supabase.from('profiles').select('*').eq('id', user?.id).single();
@@ -24,24 +25,24 @@ export function useProfile() {
       if (data) return data as Profile;
       
       // Fallback to auth metadata if profile row doesn't exist yet
-      return { id: user?.id, name: user?.user_metadata?.name || '', created_at: new Date().toISOString() } as Profile;
+      return { id: user?.id, name: user?.user_metadata?.name || '', avatar_url: user?.user_metadata?.avatar_url, created_at: new Date().toISOString() } as Profile;
     },
     enabled: !!user,
   });
 
   const updateMutation = useMutation({
-    mutationFn: async (name: string) => {
+    mutationFn: async ({ name, avatar_url }: { name: string; avatar_url?: string | null }) => {
       if (isDemo) {
-        alert("Modo Demo: Nome atualizado localmente (falso).");
-        return { id: user?.id, name, created_at: new Date().toISOString() } as Profile;
+        alert("Modo Demo: Dados atualizados localmente (falso).");
+        return { id: user?.id, name, avatar_url, created_at: new Date().toISOString() } as Profile;
       }
       
       // Update auth user metadata
-      const { error: authErr } = await supabase.auth.updateUser({ data: { name } });
+      const { error: authErr } = await supabase.auth.updateUser({ data: { name, avatar_url } });
       if (authErr) throw authErr;
 
       // Update profiles table
-      const { data, error } = await supabase.from('profiles').upsert({ id: user?.id, name }).select().single();
+      const { data, error } = await supabase.from('profiles').upsert({ id: user?.id, name, avatar_url }).select().single();
       if (error) throw error;
       return data as Profile;
     },

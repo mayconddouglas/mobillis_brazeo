@@ -3,6 +3,7 @@ import { useExpenses, useExpenseCategories, useWallets, Expense } from '../hooks
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, Receipt, Calendar as CalendarIcon, Tag, CreditCard, Edit2, Trash2, ChevronRight, Filter } from 'lucide-react';
+import { EmptyState } from '../components/ui/EmptyState';
 import { format, isToday, isThisWeek, isThisMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
@@ -281,20 +282,28 @@ export default function Expenses() {
   return (
     <div className="p-4 space-y-6 pb-24 relative min-h-screen">
       {/* Header filter */}
-      <div className="flex flex-col gap-3">
-        <div className="flex gap-2">
-          <Button variant={filter === 'today' ? 'default' : 'outline'} size="sm" onClick={() => setFilter('today')}>Hoje</Button>
-          <Button variant={filter === 'week' ? 'default' : 'outline'} size="sm" onClick={() => setFilter('week')}>Esta semana</Button>
-          <Button variant={filter === 'month' ? 'default' : 'outline'} size="sm" onClick={() => setFilter('month')}>Este mês</Button>
+      <div className="bg-card p-4 rounded-2xl border shadow-sm space-y-4 mb-6">
+        {/* Date Filter */}
+        <div className="flex gap-2 p-1 bg-muted/50 rounded-lg">
+          {(['today', 'week', 'month'] as const).map((t) => (
+            <Button
+              key={t}
+              variant={filter === t ? 'secondary' : 'ghost'}
+              size="sm"
+              className="flex-1 font-medium"
+              onClick={() => setFilter(t)}
+            >
+              {t === 'today' ? 'Hoje' : t === 'week' ? 'Esta semana' : 'Este mês'}
+            </Button>
+          ))}
         </div>
         
         {/* Category scrollable filter */}
         <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar items-center">
-          <Filter size={16} className="text-muted-foreground shrink-0 mr-1" />
           <Button 
-            variant={categoryFilter === 'all' ? 'secondary' : 'ghost'} 
+            variant={categoryFilter === 'all' ? 'default' : 'outline'} 
             size="sm" 
-            className="rounded-full shrink-0"
+            className="rounded-full shrink-0 px-4"
             onClick={() => setCategoryFilter('all')}
           >
             Todas
@@ -302,14 +311,12 @@ export default function Expenses() {
           {categories?.map(c => (
             <Button 
               key={c.id}
-              variant={categoryFilter === c.id ? 'secondary' : 'ghost'} 
+              variant={categoryFilter === c.id ? 'default' : 'outline'} 
               size="sm" 
-              className={`rounded-full shrink-0 gap-2 ${categoryFilter === c.id ? 'font-bold' : ''}`}
+              className="rounded-full shrink-0 gap-2 px-4 shadow-none"
               onClick={() => setCategoryFilter(c.id)}
             >
-              <div className="w-4 h-4 rounded-full flex items-center justify-center text-white" style={{ backgroundColor: c.color }}>
-                <Tag size={10} />
-              </div>
+              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: c.color }} />
               {c.name}
             </Button>
           ))}
@@ -318,11 +325,10 @@ export default function Expenses() {
 
       {/* Total card */}
       <div className="bg-card border rounded-2xl p-6 text-center shadow-sm relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-400 to-rose-600"></div>
-        <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">
+        <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2">
           Total {categoryFilter !== 'all' ? categories?.find(c => c.id === categoryFilter)?.name : 'Despesas'}
         </p>
-        <h2 className="text-4xl font-black font-mono text-red-500 tracking-tighter">
+        <h2 className="text-5xl font-extrabold font-mono text-foreground tracking-tighter">
           {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(total)}
         </h2>
       </div>
@@ -341,28 +347,28 @@ export default function Expenses() {
                 const wallet = wallets?.find(w => w.id === expense.wallet_id);
                 
                 return (
-                  <Card key={expense.id} className="shadow-sm cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition-all border group" onClick={() => handleOpenEdit(expense)}>
-                    <CardContent className="p-3 pr-4 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-white shadow-sm" style={{ backgroundColor: category?.color || '#ef4444' }}>
+                  <Card key={expense.id} className="shadow-none border-border hover:border-foreground/20 transition-colors cursor-pointer" onClick={() => handleOpenEdit(expense)}>
+                    <CardContent className="p-4 flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-inner bg-muted" style={{ color: category?.color }}>
                           <Tag size={18} />
                         </div>
-                        <div>
-                          <p className="font-semibold text-sm leading-tight group-hover:text-primary transition-colors">
+                        <div className="space-y-0.5">
+                          <p className="font-semibold text-sm text-foreground leading-tight">
                             {expense.description}
-                            {expense.is_installment && ` (${expense.installment_current}/${expense.installment_total})`}
-                            {expense.is_recurring && ` (Rotineira)` }
                           </p>
-                          <p className="text-xs text-muted-foreground line-clamp-1">{category?.name || 'Desconhecida'} • {wallet?.name || 'Desconhecida'}</p>
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <span className="bg-muted px-1.5 py-0.5 rounded">{category?.name || 'Desconhecida'}</span>
+                            <span>•</span>
+                            <span>{wallet?.name || 'Desconhecida'}</span>
+                            {expense.is_installment && <span>• {expense.installment_current}/{expense.installment_total}</span>}
+                          </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3 shrink-0">
-                        <div className="text-right">
-                          <p className="font-mono font-black text-red-600 text-sm">
-                            -{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(expense.amount)}
-                          </p>
-                        </div>
-                        <ChevronRight size={16} className="text-muted-foreground opacity-30 group-hover:opacity-100 transition-opacity" />
+                      <div className="text-right">
+                        <p className="font-mono font-bold text-foreground text-sm">
+                          -{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(expense.amount)}
+                        </p>
                       </div>
                     </CardContent>
                   </Card>
@@ -373,10 +379,11 @@ export default function Expenses() {
         ))}
 
         {filteredExpenses.length === 0 && (
-          <div className="text-center py-12 text-muted-foreground bg-muted/20 rounded-2xl border border-dashed">
-            <Receipt size={48} className="mx-auto mb-4 opacity-20" />
-            <p className="text-sm">Nenhuma despesa registrada neste período.</p>
-          </div>
+          <EmptyState 
+            icon={Receipt} 
+            title="Nenhuma despesa" 
+            description="Nenhuma despesa registrada neste período." 
+          />
         )}
       </div>
 

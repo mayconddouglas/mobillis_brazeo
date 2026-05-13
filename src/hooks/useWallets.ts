@@ -59,10 +59,22 @@ export function useWallets() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['wallets'] }),
   });
 
+  const transferMutation = useMutation({
+    mutationFn: async ({ walletId, amount }: { walletId: string, amount: number }) => {
+      if (isDemo) return;
+      const { data: wallet, error: fetchError } = await supabase.from('wallets').select('balance').eq('id', walletId).single();
+      if (fetchError) throw fetchError;
+      const { error } = await supabase.from('wallets').update({ balance: wallet.balance + amount }).eq('id', walletId);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['wallets'] }),
+  });
+
   return {
     ...query,
     addWallet: addMutation.mutateAsync,
     updateWallet: updateMutation.mutateAsync,
-    deleteWallet: deleteMutation.mutateAsync
+    deleteWallet: deleteMutation.mutateAsync,
+    transferToWallet: transferMutation.mutateAsync
   };
 }

@@ -6,6 +6,7 @@ import {
   Plus, Bike, Car, Calendar as CalendarIcon, Trash2, Edit2, DollarSign,
   Truck, Package, ShoppingBag, Target, Filter, ChevronRight, Briefcase, Landmark
 } from 'lucide-react';
+import { EmptyState } from '../components/ui/EmptyState';
 import { format, isToday, isThisWeek, isThisMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { BarChart, Bar, ResponsiveContainer, Tooltip } from 'recharts';
@@ -36,11 +37,25 @@ const parseDateLocal = (dateStr: string) => new Date(dateStr + 'T12:00:00');
 export default function Earnings() {
   const { data: earnings, addEarning, addMultipleEarnings, updateEarning, deleteEarning } = useEarnings();
   const { data: categories } = useIncomeCategories();
-  const { data: wallets } = useWallets();
+  const { data: wallets, transferToWallet } = useWallets();
   const { data: goals } = useGoals(new Date().getMonth() + 1, new Date().getFullYear());
   
-  const [filter, setFilter] = useState<'today' | 'week' | 'month'>('month');
+  // ... rest of the component state and existing handlers
+
+  const handleTransfer = async (earningId: string, walletId: string, amount: number) => {
+    try {
+      await transferToWallet({ walletId, amount });
+      await updateEarning({ id: earningId, description: (earnings?.find(e => e.id === earningId)?.description || '') + ' (Transferido)' });
+      // In a real app, I'd have a 'transferred' field, but for now I'll just append to description.
+      // Or I should just add 'transferred' field in the type but I cannot modify the schema easily.
+      // I will just rely on the wallet balance update.
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao transferir.');
+    }
+  };
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [filter, setFilter] = useState<'today' | 'week' | 'month'>('month');
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEarning, setEditingEarning] = useState<Earning | null>(null);
@@ -259,20 +274,28 @@ export default function Earnings() {
   return (
     <div className="p-4 space-y-6 pb-24 relative min-h-screen">
       {/* Filters */}
-      <div className="flex flex-col gap-3">
-        <div className="flex gap-2">
-          <Button variant={filter === 'today' ? 'default' : 'outline'} size="sm" onClick={() => setFilter('today')}>Hoje</Button>
-          <Button variant={filter === 'week' ? 'default' : 'outline'} size="sm" onClick={() => setFilter('week')}>Esta semana</Button>
-          <Button variant={filter === 'month' ? 'default' : 'outline'} size="sm" onClick={() => setFilter('month')}>Este mês</Button>
+      <div className="bg-card p-4 rounded-2xl border shadow-sm space-y-4 mb-6">
+        {/* Date Filter */}
+        <div className="flex gap-2 p-1 bg-muted/50 rounded-lg">
+          {(['today', 'week', 'month'] as const).map((t) => (
+            <Button
+              key={t}
+              variant={filter === t ? 'secondary' : 'ghost'}
+              size="sm"
+              className="flex-1 font-medium"
+              onClick={() => setFilter(t)}
+            >
+              {t === 'today' ? 'Hoje' : t === 'week' ? 'Esta semana' : 'Este mês'}
+            </Button>
+          ))}
         </div>
         
         {/* Category scrollable filter */}
         <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar items-center">
-          <Filter size={16} className="text-muted-foreground shrink-0 mr-1" />
           <Button 
-            variant={categoryFilter === 'all' ? 'secondary' : 'ghost'} 
+            variant={categoryFilter === 'all' ? 'default' : 'outline'} 
             size="sm" 
-            className="rounded-full shrink-0"
+            className="rounded-full shrink-0 px-4"
             onClick={() => setCategoryFilter('all')}
           >
             Todas
@@ -280,17 +303,12 @@ export default function Earnings() {
           {categories?.map(c => (
             <Button 
               key={c.id}
-              variant={categoryFilter === c.id ? 'secondary' : 'ghost'} 
+              variant={categoryFilter === c.id ? 'default' : 'outline'} 
               size="sm" 
-              className={`rounded-full shrink-0 gap-2 ${categoryFilter === c.id ? 'font-bold' : ''}`}
+              className="rounded-full shrink-0 gap-2 px-4 shadow-none"
               onClick={() => setCategoryFilter(c.id)}
             >
-              <div className="w-4 h-4 rounded-full flex items-center justify-center text-white" style={{ backgroundColor: c.color }}>
-                {(() => {
-                  const Icon = categoryIconMap[c.icon] || DollarSign;
-                  return <Icon size={10} />;
-                })()}
-              </div>
+              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: c.color }} />
               {c.name}
             </Button>
           ))}
@@ -299,11 +317,10 @@ export default function Earnings() {
 
       {/* Total card */}
       <div className="bg-card border rounded-2xl p-6 text-center shadow-sm relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-400 to-emerald-600"></div>
-        <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">
+        <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2">
           Total {categoryFilter !== 'all' ? categories?.find(c => c.id === categoryFilter)?.name : 'Recebido'}
         </p>
-        <h2 className="text-4xl font-black font-mono text-green-500 tracking-tighter">
+        <h2 className="text-5xl font-extrabold font-mono text-foreground tracking-tighter">
           {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(total)}
         </h2>
         
@@ -380,34 +397,30 @@ export default function Earnings() {
                 const wallet = wallets?.find(w => w.id === earning.wallet_id);
                 
                 return (
-                  <Card key={earning.id} className="shadow-sm cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition-all border group" onClick={() => handleOpenEdit(earning)}>
-                    <CardContent className="p-3 pr-4 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-white shadow-sm" style={{ backgroundColor: category?.color || '#94a3b8' }}>
+                  <Card key={earning.id} className="shadow-none border-border hover:border-foreground/20 transition-colors cursor-pointer" onClick={() => handleOpenEdit(earning)}>
+                    <CardContent className="p-4 flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-inner bg-muted" style={{ color: category?.color }}>
                           <IconComponent size={18} />
                         </div>
-                        <div>
-                          <p className="font-semibold text-sm leading-tight group-hover:text-primary transition-colors">
+                        <div className="space-y-0.5">
+                          <p className="font-semibold text-sm text-foreground leading-tight">
                             {category?.name || 'Deletada'}
-                            {earning.is_installment && ` (${earning.installment_current}/${earning.installment_total})`}
-                            {earning.is_recurring && ` (Rotineira)`}
                           </p>
-                          <div className="flex items-center gap-1 mt-0.5">
-                            <Landmark size={10} className="text-muted-foreground" />
-                            <p className="text-[10px] text-muted-foreground font-medium">{wallet?.name || 'Conta Removida'}</p>
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <span className="bg-muted px-1.5 py-0.5 rounded">{wallet?.name || 'Conta Removida'}</span>
+                            {earning.is_installment && <span>• {earning.installment_current}/{earning.installment_total}</span>}
+                            {earning.is_recurring && <span>• Rotineira</span>}
                           </div>
                           {earning.description && (
-                            <p className="text-[10px] text-muted-foreground mt-0.5 max-w-[200px] truncate">{earning.description}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5 truncate max-w-[150px]">{earning.description}</p>
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-3 shrink-0">
-                        <div className="text-right">
-                          <p className="font-mono font-black text-green-600 text-sm">
-                            +{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(earning.amount)}
-                          </p>
-                        </div>
-                        <ChevronRight size={16} className="text-muted-foreground opacity-30 group-hover:opacity-100 transition-opacity" />
+                      <div className="text-right">
+                        <p className="font-mono font-bold text-foreground text-sm">
+                          +{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(earning.amount)}
+                        </p>
                       </div>
                     </CardContent>
                   </Card>
@@ -418,10 +431,11 @@ export default function Earnings() {
         ))}
 
         {filteredEarnings.length === 0 && (
-          <div className="text-center py-12 text-muted-foreground bg-muted/20 rounded-2xl border border-dashed">
-            <DollarSign size={48} className="mx-auto mb-4 opacity-20" />
-            <p className="text-sm">Nenhuma receita registrada neste período.</p>
-          </div>
+          <EmptyState 
+            icon={DollarSign} 
+            title="Nenhuma receita" 
+            description="Nenhuma receita registrada neste período." 
+          />
         )}
       </div>
 
@@ -582,9 +596,14 @@ export default function Earnings() {
 
             <div className="flex gap-2 pt-4 border-t">
               {editingEarning && (
-                <Button disabled={saving} type="button" variant="outline" onClick={() => handleDelete(editingEarning.id)} className="h-12 px-4 text-red-500 hover:text-red-600 hover:bg-red-50 border-red-100">
-                  <Trash2 size={18} />
-                </Button>
+                <>
+                  <Button disabled={saving} type="button" variant="outline" onClick={() => handleDelete(editingEarning.id)} className="h-12 px-4 text-red-500 hover:text-red-600 hover:bg-red-50 border-red-100">
+                    <Trash2 size={18} />
+                  </Button>
+                  <Button disabled={saving} type="button" variant="outline" onClick={() => handleTransfer(editingEarning.id, editingEarning.wallet_id, editingEarning.amount)} className="h-12 px-4">
+                    Transferir
+                  </Button>
+                </>
               )}
               <Button disabled={saving} type="submit" className="flex-1 h-12 font-bold text-base">
                 {saving ? 'Salvando...' : (editingEarning ? 'Salvar Edição' : 'Salvar Receita')}

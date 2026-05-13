@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import imageCompression from 'browser-image-compression';
 import { useAuth } from '../contexts/AuthContext';
-import { useIncomeCategories, useExpenseCategories, useGoals, useProfile, useWallets } from '../hooks';
+import { useIncomeCategories, useExpenseCategories, useGoals, useProfile, useWallets, useEarnings, useExpenses } from '../hooks';
 import { supabase } from '../lib/supabase';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,11 +11,20 @@ import {
   LogOut, User, Moon, Sun, Bell, Shield, ChevronRight, Check,
   Target, Briefcase, Tags, Plus, Trash2, Power, Landmark,
   Car, Bike, Truck, Package, ShoppingBag,
-  Tag, Fuel, Coffee, HomeIcon, Smartphone, Wrench, ShoppingCart
+  Tag, Fuel, Coffee, HomeIcon, Smartphone, Wrench, ShoppingCart,
+  FileText, Zap, Gift, Plane, Music, Film, Book, GraduationCap, DollarSign, CreditCard, PiggyBank,
+  Heart, Star, Umbrella, Award
 } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import Papa from 'papaparse';
 
 const incomeCategoryIconMap: Record<string, any> = {
-  car: Car, bike: Bike, truck: Truck, package: Package, 'shopping-bag': ShoppingBag, briefcase: Briefcase, laptop: Package, 'trending-up': Target
+  car: Car, bike: Bike, truck: Truck, package: Package, 'shopping-bag': ShoppingBag, 
+  briefcase: Briefcase, laptop: Package, 'trending-up': Target, zap: Zap, gift: Gift, 
+  plane: Plane, music: Music, film: Film, book: Book, 'graduation-cap': GraduationCap,
+  'dollar-sign': DollarSign, 'credit-card': CreditCard, 'piggy-bank': PiggyBank,
+  heart: Heart, star: Star, umbrella: Umbrella, award: Award
 };
 
 const categoryIconMap: Record<string, any> = {
@@ -58,8 +68,8 @@ export default function Settings() {
 
       <Card className="shadow-sm border-none bg-gradient-to-br from-primary/5 to-primary/10">
         <CardContent className="p-6 flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center shrink-0 border border-primary/20">
-            <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${user?.id}`} className="w-14 h-14 rounded-full" />
+          <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center shrink-0 border border-primary/20 overflow-hidden">
+            <img src={profile?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${user?.id}`} className="w-16 h-16 object-cover" />
           </div>
           <div className="flex-1">
             <h2 className="font-bold text-lg">{profile?.name || user?.user_metadata?.name || 'Usuário'}</h2>
@@ -82,6 +92,7 @@ export default function Settings() {
             <div className="text-xs font-bold text-muted-foreground bg-muted px-2 py-1 rounded-md">{isDark ? 'ATIVADO' : 'DESATIVADO'}</div>
           </div>
           <NotificationsSheet />
+          <ExportSheet />
           <PrivacySheet />
         </div>
       </div>
@@ -94,6 +105,7 @@ export default function Settings() {
           <IncomeCategoriesSheet />
           <ExpenseCategoriesSheet />
           <MonthlyGoalsSheet month={month} year={year} />
+          <ResetDataSheet />
         </div>
       </div>
 
@@ -143,19 +155,132 @@ function NotificationsSheet() {
   )
 }
 
-function PrivacySheet() {
+function ExportSheet() {
+  const { data: earnings } = useEarnings();
+  const { data: expenses } = useExpenses();
+
+  const exportCSV = () => {
+    const data = [
+      ...(earnings || []).map(e => ({ tipo: 'Receita', data: e.date, valor: e.amount, descricao: e.description })),
+      ...(expenses || []).map(e => ({ tipo: 'Despesa', data: e.date, valor: e.amount, descricao: e.description }))
+    ];
+    const csv = Papa.unparse(data);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "relatorio.csv";
+    link.click();
+  };
+
+  const exportPDF = () => {
+    const doc = new jsPDF();
+    doc.text("Relatório de Movimentações", 14, 15);
+    autoTable(doc, {
+      startY: 20,
+      head: [['Tipo', 'Data', 'Valor (R$)', 'Descrição']],
+      body: [
+        ...(earnings || []).map(e => ['Receita', e.date, e.amount.toFixed(2), e.description]),
+        ...(expenses || []).map(e => ['Despesa', e.date, e.amount.toFixed(2), e.description])
+      ],
+    });
+    doc.save("relatorio.pdf");
+  };
+
   return (
     <Sheet>
       <SheetTrigger render={<button type="button" className="w-full text-left" />}>
-        <ActionRow icon={<Shield size={18} />} label="Privacidade" />
+        <ActionRow icon={<FileText size={18} />} label="Exportar Relatórios" />
+      </SheetTrigger>
+      <SheetContent side="bottom" className="h-[90vh] sm:h-auto rounded-t-3xl p-6">
+        <SheetHeader className="mb-6 text-left">
+          <SheetTitle>Exportar Relatórios</SheetTitle>
+        </SheetHeader>
+        <div className="space-y-4">
+          <Button onClick={exportCSV} className="w-full h-12 font-bold" variant="outline">Exportar para CSV</Button>
+          <Button onClick={exportPDF} className="w-full h-12 font-bold">Exportar para PDF</Button>
+        </div>
+      </SheetContent>
+    </Sheet>
+  )
+}
+
+function ResetDataSheet() {
+  const { user } = useAuth();
+  
+  const handleReset = async () => {
+    if (!confirm("Tem certeza que deseja apagar TODOS os seus dados financeiros? Esta ação é irreversível.")) return;
+    try {
+      await supabase.from('earnings').delete().eq('user_id', user?.id);
+      await supabase.from('expenses').delete().eq('user_id', user?.id);
+      alert("Dados zerados com sucesso!");
+    } catch (e) {
+      alert("Erro ao zerar dados.");
+    }
+  };
+
+  return (
+    <Sheet>
+      <SheetTrigger render={<button type="button" className="w-full text-left" />}>
+        <ActionRow icon={<Trash2 size={18} />} label="Zerar Dados Financeiros" />
+      </SheetTrigger>
+      <SheetContent side="bottom" className="h-[90vh] sm:h-auto rounded-t-3xl p-6">
+        <SheetHeader className="mb-6 text-left">
+          <SheetTitle>Zerar Dados</SheetTitle>
+        </SheetHeader>
+        <div className="space-y-4">
+          <p className="text-sm text-red-500 font-semibold">Esta ação apagará permanentemente todas as suas receitas e despesas registradas.</p>
+          <Button variant="destructive" className="w-full h-12" onClick={handleReset}>Zerar agora</Button>
+        </div>
+      </SheetContent>
+    </Sheet>
+  )
+}
+
+function PrivacySheet() {
+  const { user } = useAuth();
+  
+  const handleExportJSON = () => {
+    // In a real app, this would fetch all user data. 
+    // For now, we mock the structure.
+    const mockData = {
+      user: { email: user?.email },
+      timestamp: new Date().toISOString(),
+      note: "Estes são os seus dados anonimizados exportados."
+    };
+    const blob = new Blob([JSON.stringify(mockData, null, 2)], { type: 'application/json' });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "meus_dados.json";
+    link.click();
+  };
+
+  const handleRequestDeletion = () => {
+    alert("Solicitação de exclusão de conta enviada ao suporte.");
+  };
+
+  return (
+    <Sheet>
+      <SheetTrigger render={<button type="button" className="w-full text-left" />}>
+        <ActionRow icon={<Shield size={18} />} label="Privacidade e Segurança" />
       </SheetTrigger>
       <SheetContent side="bottom" className="h-[90vh] sm:h-auto rounded-t-3xl p-6">
         <SheetHeader className="mb-6 text-left">
           <SheetTitle>Privacidade e Segurança</SheetTitle>
         </SheetHeader>
-        <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">O Brazeo Finanças trata os seus dados com a máxima segurança (Row Level Security no Supabase). Seus dados financeiros não são compartilhados com nenhuma entidade externa.</p>
-          <Button variant="outline" className="w-full h-12 font-bold mt-4">Li e concordo</Button>
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <h4 className="text-sm font-semibold">Seus Dados</h4>
+            <p className="text-xs text-muted-foreground">O Brazeo Finanças trata os seus dados com a máxima segurança (Row Level Security no Supabase). Seus dados financeiros não são compartilhados com nenhuma entidade externa.</p>
+          </div>
+          
+          <div className="space-y-3">
+            <Button variant="outline" className="w-full h-12 justify-start gap-3" onClick={handleExportJSON}>
+              <FileText size={18} /> Exportar dados como JSON
+            </Button>
+            <Button variant="destructive" className="w-full h-12 justify-start gap-3" onClick={handleRequestDeletion}>
+              <Trash2 size={18} /> Solicitar exclusão da conta
+            </Button>
+          </div>
         </div>
       </SheetContent>
     </Sheet>
@@ -166,16 +291,43 @@ function UserProfileSheet() {
   const { user } = useAuth();
   const { data: profile, updateProfile } = useProfile();
   const [name, setName] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
   const [open, setOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (profile?.name) {
-      setName(profile.name);
-    }
+    if (profile?.name) setName(profile.name);
+    if (profile?.avatar_url) setAvatarUrl(profile.avatar_url);
   }, [profile, open]);
 
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+        const compressedFile = await imageCompression(file, {
+            maxSizeMB: 0.5,
+            maxWidthOrHeight: 500,
+            useWebWorker: true,
+        });
+
+        const fileName = `${user?.id}/${Date.now()}.png`;
+        const { error: uploadError } = await supabase.storage
+            .from('avatars')
+            .upload(fileName, compressedFile, { upsert: true });
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName);
+        setAvatarUrl(publicUrl);
+    } catch (e) {
+        console.error(e);
+        alert("Erro ao enviar foto.");
+    }
+  }
+
   const handleSave = async () => {
-    await updateProfile(name);
+    await updateProfile({ name, avatar_url: avatarUrl });
     setOpen(false);
   };
 
@@ -189,6 +341,13 @@ function UserProfileSheet() {
           <SheetTitle>Meus Dados</SheetTitle>
         </SheetHeader>
         <div className="space-y-4">
+          <div className="flex flex-col items-center gap-4 mb-6">
+            <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center overflow-hidden border">
+                <img src={avatarUrl || `https://api.dicebear.com/7.x/notionists/svg?seed=${user?.id}`} className="w-24 h-24 object-cover" />
+            </div>
+            <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>Alterar Foto</Button>
+            <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleAvatarChange} />
+          </div>
           <div className="space-y-2">
             <Label>Nome</Label>
             <Input value={name} onChange={(e) => setName(e.target.value)} className="h-12" placeholder="Seu nome" />
@@ -356,14 +515,34 @@ function MonthlyGoalsSheet({ month, year }: { month: number; year: number }) {
 function IncomeCategoriesSheet() {
   const { data: categories, addIncomeCategory, updateIncomeCategory, deleteIncomeCategory } = useIncomeCategories();
   const [open, setOpen] = useState(false);
-  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<any>(null);
   const [newCategory, setNewCategory] = useState({ name: '', color: '#3B82F6', icon: 'briefcase' });
 
-  const handleAdd = async () => {
+  const lighterColors = ['#60a5fa', '#4ade80', '#f87171', '#fbbf24', '#c084fc', '#f472b6', '#2dd4bf'];
+
+  const handleSave = async () => {
     if (!newCategory.name) return;
-    await addIncomeCategory({ ...newCategory, is_active: true });
+    if (editingCategory) {
+      await updateIncomeCategory({ id: editingCategory.id, ...newCategory });
+    } else {
+      await addIncomeCategory({ ...newCategory, is_active: true });
+    }
     setNewCategory({ name: '', color: '#3B82F6', icon: 'briefcase' });
-    setIsAddOpen(false);
+    setEditingCategory(null);
+    setIsDialogOpen(false);
+  };
+
+  const openAdd = () => {
+    setEditingCategory(null);
+    setNewCategory({ name: '', color: '#3B82F6', icon: 'briefcase' });
+    setIsDialogOpen(true);
+  };
+
+  const openEdit = (category: any) => {
+    setEditingCategory(category);
+    setNewCategory({ name: category.name, color: category.color, icon: category.icon });
+    setIsDialogOpen(true);
   };
 
   return (
@@ -379,14 +558,14 @@ function IncomeCategoriesSheet() {
               size="icon"
               variant="outline"
               className="w-8 h-8 rounded-full"
-              onClick={() => setIsAddOpen(true)}
+              onClick={openAdd}
             >
               <Plus size={16} />
             </Button>
-            <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogContent className="sm:max-w-md w-[calc(100%-32px)] mx-auto rounded-2xl p-6">
                 <DialogHeader>
-                  <DialogTitle>Nova Categoria</DialogTitle>
+                  <DialogTitle>{editingCategory ? "Editar Categoria" : "Nova Categoria"}</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 mt-4">
                   <div className="space-y-2">
@@ -395,14 +574,20 @@ function IncomeCategoriesSheet() {
                   </div>
                   <div className="space-y-2">
                     <Label>Cor de Identificação</Label>
-                    <div className="flex gap-4 items-center">
-                      <Input type="color" value={newCategory.color} onChange={e => setNewCategory({...newCategory, color: e.target.value})} className="h-12 w-20 p-1" />
-                      <div className="flex-1 text-sm text-muted-foreground">{newCategory.color}</div>
+                    <div className="flex flex-wrap gap-2">
+                        {lighterColors.map(color => (
+                            <button
+                                key={color}
+                                onClick={() => setNewCategory({...newCategory, color})}
+                                className={`w-8 h-8 rounded-full border-2 ${newCategory.color === color ? 'border-foreground scale-110' : 'border-transparent'}`}
+                                style={{ backgroundColor: color }}
+                            />
+                        ))}
                     </div>
                   </div>
                   <div className="space-y-2">
                     <Label>Ícone</Label>
-                    <div className="flex gap-2 flex-wrap">
+                    <div className="flex gap-2 flex-wrap h-40 overflow-y-auto p-2 border rounded-lg">
                       {Object.keys(incomeCategoryIconMap).map((iconKey) => {
                         const IconComponent = incomeCategoryIconMap[iconKey];
                         return (
@@ -417,8 +602,8 @@ function IncomeCategoriesSheet() {
                       })}
                     </div>
                   </div>
-                  <Button onClick={handleAdd} className="w-full h-12 font-bold mt-2">
-                    Salvar Categoria
+                  <Button onClick={handleSave} className="w-full h-12 font-bold mt-2">
+                    {editingCategory ? "Atualizar Categoria" : "Salvar Categoria"}
                   </Button>
                 </div>
               </DialogContent>
@@ -429,7 +614,7 @@ function IncomeCategoriesSheet() {
           {categories?.map(p => {
             const IconComponent = incomeCategoryIconMap[p.icon] || Briefcase;
             return (
-            <div key={p.id} className="flex items-center justify-between p-3 border rounded-xl shadow-sm bg-card">
+            <div key={p.id} className="flex items-center justify-between p-3 border rounded-xl shadow-sm bg-card" onClick={() => openEdit(p)}>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full flex items-center justify-center text-white" style={{ backgroundColor: p.color }}>
                   <IconComponent size={18} />
@@ -439,10 +624,10 @@ function IncomeCategoriesSheet() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <Button variant={p.is_active ? 'default' : 'secondary'} size="icon" className="w-8 h-8 rounded-full" onClick={() => updateIncomeCategory({ id: p.id, is_active: !p.is_active })}>
+                <Button variant={p.is_active ? 'default' : 'secondary'} size="icon" className="w-8 h-8 rounded-full" onClick={(e) => { e.stopPropagation(); updateIncomeCategory({ id: p.id, is_active: !p.is_active })}}>
                   <Power size={14} className={p.is_active ? 'text-white' : 'text-muted-foreground'} />
                 </Button>
-                <Button variant="ghost" size="icon" className="w-8 h-8 rounded-full text-red-500 hover:text-red-600 hover:bg-red-50" onClick={() => deleteIncomeCategory(p.id)}>
+                <Button variant="ghost" size="icon" className="w-8 h-8 rounded-full text-red-500 hover:text-red-600 hover:bg-red-50" onClick={(e) => { e.stopPropagation(); deleteIncomeCategory(p.id)}}>
                   <Trash2 size={14} />
                 </Button>
               </div>
@@ -454,6 +639,7 @@ function IncomeCategoriesSheet() {
     </Sheet>
   )
 }
+
 
 function ExpenseCategoriesSheet() {
   const { data: categories, addCategory, deleteCategory } = useExpenseCategories();

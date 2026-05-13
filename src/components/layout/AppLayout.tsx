@@ -1,130 +1,39 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Home, TrendingUp, Receipt, Wallet, Settings } from 'lucide-react';
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarInset,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarProvider,
-  SidebarRail,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
+import { NavLink, Outlet } from 'react-router-dom';
 
 export default function AppLayout() {
-  const { pathname } = useLocation();
-  const currentPage = getCurrentPage(pathname);
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => setIsDesktop(window.innerWidth > 768);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  if (isDesktop) {
+    return (
+      <div className="flex items-center justify-center min-h-screen text-center p-8 bg-background text-foreground">
+        <p>Este aplicativo foi desenvolvido exclusivamente para dispositivos móveis (celulares ou tablets).</p>
+      </div>
+    );
+  }
 
   return (
-    <SidebarProvider>
-      <Sidebar variant="inset" collapsible="icon">
-        <SidebarContent>
-          <SidebarGroup>
-            <SidebarGroupLabel>Brazeo Finanças</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    render={<NavLink to="/" />}
-                    isActive={pathname === '/'}
-                  >
-                    <Home data-icon="inline-start" />
-                    Dashboard
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    render={<NavLink to="/receitas" />}
-                    isActive={pathname === '/receitas'}
-                  >
-                    <TrendingUp className="size-4" />
-                    <span>Receitas</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    render={<NavLink to="/despesas" />}
-                    isActive={pathname === '/despesas'}
-                  >
-                    <Receipt className="size-4" />
-                    <span>Despesas</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+    <div className="min-h-screen bg-background flex flex-col">
+      <div className="flex-1 flex flex-col overflow-y-auto pb-24">
+        <Outlet />
+      </div>
 
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    render={<NavLink to="/contas" />}
-                    isActive={pathname === '/contas'}
-                  >
-                    <Wallet className="size-4" />
-                    <span>Contas</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    render={<NavLink to="/configuracoes" />}
-                    isActive={pathname === '/configuracoes'}
-                  >
-                    <Settings className="size-4" />
-                    <span>Configurações</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        </SidebarContent>
-        <SidebarRail />
-      </Sidebar>
-
-      <SidebarInset className="min-h-svh">
-        <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center gap-2 border-b bg-background/80 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:h-16">
-          <SidebarTrigger className="-ml-1" />
-          <Breadcrumb className="hidden md:block">
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink render={<NavLink to="/" />}>
-                  Brazeo Finanças
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage>{currentPage}</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-          <div className="ml-auto text-sm font-medium text-muted-foreground">
-            {currentPage}
-          </div>
-        </header>
-
-        <div className="flex flex-1 flex-col overflow-y-auto pb-24 md:pb-0">
-          <Outlet />
-        </div>
-
-        <nav className="fixed inset-x-0 bottom-0 z-50 flex items-center justify-between border-t bg-card/80 px-6 py-3 backdrop-blur md:hidden">
-          <NavItem to="/" icon={<Home />} label="Início" />
-          <NavItem to="/receitas" icon={<TrendingUp />} label="Receitas" />
-          <NavItem to="/despesas" icon={<Receipt />} label="Despesas" />
-          <NavItem to="/contas" icon={<Wallet />} label="Contas" />
-          <NavItem to="/configuracoes" icon={<Settings />} label="Config" />
-        </nav>
-      </SidebarInset>
-    </SidebarProvider>
+      <nav className="fixed inset-x-0 bottom-0 z-50 flex items-center justify-between border-t bg-card/80 px-6 py-3 backdrop-blur">
+        <NavItem to="/" icon={<Home />} label="Início" />
+        <NavItem to="/receitas" icon={<TrendingUp />} label="Receitas" />
+        <NavItem to="/despesas" icon={<Receipt />} label="Despesas" />
+        <NavItem to="/contas" icon={<Wallet />} label="Contas" />
+        <NavItem to="/configuracoes" icon={<Settings />} label="Config" />
+      </nav>
+    </div>
   );
 }
 
@@ -144,13 +53,4 @@ function NavItem({ to, icon, label }: { to: string; icon: React.ReactNode; label
       <span className="text-[10px] font-medium">{label}</span>
     </NavLink>
   );
-}
-
-function getCurrentPage(pathname: string) {
-  if (pathname === '/') return 'Dashboard';
-  if (pathname === '/receitas' || pathname === '/earnings') return 'Receitas';
-  if (pathname === '/despesas' || pathname === '/expenses') return 'Despesas';
-  if (pathname === '/contas' || pathname === '/wallets') return 'Contas';
-  if (pathname === '/configuracoes' || pathname === '/settings') return 'Configurações';
-  return 'Brazeo Finanças';
 }
