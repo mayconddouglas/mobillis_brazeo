@@ -34,7 +34,7 @@ const categoryIconMap: Record<string, any> = {
 const parseDateLocal = (dateStr: string) => new Date(dateStr + 'T12:00:00');
 
 export default function Earnings() {
-  const { data: earnings, addEarning, updateEarning, deleteEarning } = useEarnings();
+  const { data: earnings, addEarning, addMultipleEarnings, updateEarning, deleteEarning } = useEarnings();
   const { data: categories } = useIncomeCategories();
   const { data: wallets } = useWallets();
   const { data: goals } = useGoals(new Date().getMonth() + 1, new Date().getFullYear());
@@ -193,7 +193,6 @@ export default function Earnings() {
           }
         }
 
-        const { addMultipleEarnings } = useEarnings();
         if (addMultipleEarnings) {
           await addMultipleEarnings(payloads);
         } else {
@@ -519,19 +518,67 @@ export default function Earnings() {
               />
             </div>
 
-            <div className="flex items-center justify-between pt-2">
-              <div className="space-y-0.5">
-                <Label htmlFor="recurring" className="text-base">Receita Fixa / Recorrente</Label>
-                <p className="text-sm text-muted-foreground">
-                  Marcando esta opção, esta receita se repetirá todo mês.
-                </p>
+            
+            <div className="pt-2 border-t mt-2">
+              <Label className="mb-2 block">Tipo de Receita</Label>
+              <div className="flex gap-2">
+                <Button 
+                  type="button" 
+                  variant={transactionType === 'single' ? 'default' : 'outline'} 
+                  className="flex-1"
+                  onClick={() => setTransactionType('single')}
+                >
+                  Única
+                </Button>
+                <Button 
+                  type="button" 
+                  variant={transactionType === 'installment' ? 'default' : 'outline'} 
+                  className="flex-1"
+                  onClick={() => setTransactionType('installment')}
+                >
+                  Parcelada
+                </Button>
+                <Button 
+                  type="button" 
+                  variant={transactionType === 'recurring' ? 'default' : 'outline'} 
+                  className="flex-1"
+                  onClick={() => setTransactionType('recurring')}
+                >
+                  Fixa
+                </Button>
               </div>
-              <Switch
-                id="recurring"
-                checked={newEarning.is_recurring}
-                onCheckedChange={(checked) => setNewEarning({...newEarning, is_recurring: checked})}
-              />
             </div>
+
+            {transactionType === 'installment' && (
+              <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                <Label htmlFor="installments">Número de Parcelas</Label>
+                <Select value={installmentCount} onValueChange={setInstallmentCount}>
+                  <SelectTrigger className="h-12 w-full">
+                    <SelectValue placeholder="Selecione..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[2,3,4,5,6,10,12,24].map((num) => (
+                      <SelectItem key={num} value={num.toString()}>{num}x</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {transactionType === 'recurring' && (
+              <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                <Label htmlFor="frequency">Frequência</Label>
+                <Select value={recurringFrequency} onValueChange={(val: any) => setRecurringFrequency(val)}>
+                  <SelectTrigger className="h-12 w-full">
+                    <SelectValue placeholder="Selecione..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="monthly">Mensal</SelectItem>
+                    <SelectItem value="yearly">Anual</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <div className="flex gap-2 pt-4 border-t">
               {editingEarning && (
