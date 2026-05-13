@@ -36,6 +36,8 @@ export default function Expenses() {
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
   
   const [newExpense, setNewExpense] = useState({
     amount: '',
@@ -48,6 +50,7 @@ export default function Expenses() {
 
   const handleOpenEdit = (expense: Expense) => {
     setEditingExpense(expense);
+    setFormError(null);
     setNewExpense({
       amount: expense.amount.toString(),
       category_id: expense.category_id,
@@ -61,6 +64,7 @@ export default function Expenses() {
 
   const handleOpenAdd = () => {
     setEditingExpense(null);
+    setFormError(null);
     setNewExpense({
       amount: '',
       category_id: categoryFilter !== 'all' ? categoryFilter : '',
@@ -74,9 +78,26 @@ export default function Expenses() {
 
   const handleSaveExpense = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newExpense.amount || !newExpense.category_id || !newExpense.wallet_id || !newExpense.date || !newExpense.description) return;
+    setFormError(null);
+
+    if (!newExpense.amount || !newExpense.description || !newExpense.date) {
+      setFormError('Preencha valor, descrição e data.');
+      return;
+    }
+    if (!newExpense.category_id) {
+      setFormError('Selecione uma categoria.');
+      return;
+    }
+    if (!newExpense.wallet_id) {
+      setFormError('Selecione uma carteira.');
+      return;
+    }
 
     const newAmount = parseFloat(newExpense.amount.toString().replace(',', '.'));
+    if (Number.isNaN(newAmount) || newAmount <= 0) {
+      setFormError('Informe um valor válido.');
+      return;
+    }
     
     const dataPayload = {
       amount: newAmount,
@@ -87,43 +108,46 @@ export default function Expenses() {
       is_recurring: newExpense.is_recurring,
     };
 
-    if (editingExpense) {
-      await updateExpense({ id: editingExpense.id, ...dataPayload });
-      
-      // Update wallet balances if amount or wallet changed
-      if (editingExpense.wallet_id === dataPayload.wallet_id) {
-        // Same wallet, update the difference
-        const difference = dataPayload.amount - editingExpense.amount;
-        if (difference !== 0) {
-          const wallet = wallets?.find(w => w.id === dataPayload.wallet_id);
-          if (wallet) {
-            await updateWallet({ id: wallet.id, balance: wallet.balance - difference });
+    setSaving(true);
+    try {
+      if (editingExpense) {
+        await updateExpense({ id: editingExpense.id, ...dataPayload });
+        
+        if (editingExpense.wallet_id === dataPayload.wallet_id) {
+          const difference = dataPayload.amount - editingExpense.amount;
+          if (difference !== 0) {
+            const wallet = wallets?.find(w => w.id === dataPayload.wallet_id);
+            if (wallet) {
+              await updateWallet({ id: wallet.id, balance: wallet.balance - difference });
+            }
+          }
+        } else {
+          const oldWallet = wallets?.find(w => w.id === editingExpense.wallet_id);
+          if (oldWallet) {
+            await updateWallet({ id: oldWallet.id, balance: oldWallet.balance + editingExpense.amount });
+          }
+          const newWallet = wallets?.find(w => w.id === dataPayload.wallet_id);
+          if (newWallet) {
+            await updateWallet({ id: newWallet.id, balance: newWallet.balance - dataPayload.amount });
           }
         }
       } else {
-        // Different wallets, refund the old one and charge the new one
-        const oldWallet = wallets?.find(w => w.id === editingExpense.wallet_id);
-        if (oldWallet) {
-          await updateWallet({ id: oldWallet.id, balance: oldWallet.balance + editingExpense.amount });
-        }
-        const newWallet = wallets?.find(w => w.id === dataPayload.wallet_id);
-        if (newWallet) {
-          // Note: using the array from useWallets might be slightly stale if we don't refetch, 
-          // but for basic usage it works. (A realtime subscription or invalidation would be better)
-          await updateWallet({ id: newWallet.id, balance: newWallet.balance - dataPayload.amount });
+        await addExpense(dataPayload);
+        
+        const wallet = wallets?.find(w => w.id === dataPayload.wallet_id);
+        if (wallet) {
+          await updateWallet({ id: wallet.id, balance: wallet.balance - dataPayload.amount });
         }
       }
-    } else {
-      await addExpense(dataPayload);
-      
-      // Deduct from wallet
-      const wallet = wallets?.find(w => w.id === dataPayload.wallet_id);
-      if (wallet) {
-        await updateWallet({ id: wallet.id, balance: wallet.balance - dataPayload.amount });
-      }
+
+      setIsModalOpen(false);
+    } catch (err: any) {
+      const msg = err?.message || 'Não foi possível salvar o gasto.';
+      setFormError(msg);
+      console.error(err);
+    } finally {
+      setSaving(false);
     }
-    
-    setIsModalOpen(false);
   };
 
   const handleDelete = async (id: string) => {
@@ -280,6 +304,11 @@ export default function Expenses() {
             <DialogTitle>{editingExpense ? 'Editar Gasto' : 'Adicionar Gasto'}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSaveExpense} className="space-y-5 mt-4">
+            {formError && (
+              <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                {formError}
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="amount">Valor Gasto (R$)</Label>
               <Input 
@@ -379,7 +408,7 @@ export default function Expenses() {
                 </Button>
               )}
               <Button type="submit" className="flex-1 h-12 font-bold text-base bg-red-500 hover:bg-red-600">
-                {editingExpense ? 'Salvar Edição' : 'Salvar Gasto'}
+                {saving ? 'Salvando...' : (editingExpense ? 'Salvar Edição' : 'Salvar Gasto')}
               </Button>
             </div>
           </form>
