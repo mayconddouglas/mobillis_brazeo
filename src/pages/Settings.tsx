@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { usePlatforms, useExpenseCategories, useGoals, useProfile } from '../hooks';
+import { useIncomeCategories, useExpenseCategories, useGoals, useProfile, useWallets } from '../hooks';
 import { supabase } from '../lib/supabase';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,13 +8,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { 
   LogOut, User, Moon, Sun, Bell, Shield, ChevronRight, Check,
-  Target, Briefcase, Tags, Plus, Trash2, Power,
+  Target, Briefcase, Tags, Plus, Trash2, Power, Landmark,
   Car, Bike, Truck, Package, ShoppingBag,
   Tag, Fuel, Coffee, HomeIcon, Smartphone, Wrench, ShoppingCart
 } from 'lucide-react';
 
-const platformIconMap: Record<string, any> = {
-  car: Car, bike: Bike, truck: Truck, package: Package, 'shopping-bag': ShoppingBag
+const incomeCategoryIconMap: Record<string, any> = {
+  car: Car, bike: Bike, truck: Truck, package: Package, 'shopping-bag': ShoppingBag, briefcase: Briefcase, laptop: Package, 'trending-up': Target
 };
 
 const categoryIconMap: Record<string, any> = {
@@ -90,7 +90,8 @@ export default function Settings() {
         <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider px-2">Conta & Configurações</h3>
         <div className="bg-card rounded-2xl border shadow-sm divide-y">
           <UserProfileSheet />
-          <PlatformsSheet />
+          <WalletsSheet />
+          <IncomeCategoriesSheet />
           <ExpenseCategoriesSheet />
           <MonthlyGoalsSheet month={month} year={year} />
         </div>
@@ -205,6 +206,102 @@ function UserProfileSheet() {
   )
 }
 
+function WalletsSheet() {
+  const { data: wallets, addWallet, updateWallet, deleteWallet } = useWallets();
+  const [open, setOpen] = useState(false);
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [newWallet, setNewWallet] = useState({ name: '', color: '#3B82F6', icon: 'landmark', type: 'checking' });
+
+  const handleAdd = async () => {
+    if (!newWallet.name) return;
+    await addWallet({ ...newWallet, balance: 0 });
+    setNewWallet({ name: '', color: '#3B82F6', icon: 'landmark', type: 'checking' });
+    setIsAddOpen(false);
+  };
+
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger render={<button type="button" className="w-full text-left" />}>
+        <ActionRow icon={<Landmark size={18} />} label="Contas & Cartões" />
+      </SheetTrigger>
+      <SheetContent side="bottom" className="h-[90vh] sm:h-[80vh] rounded-t-3xl p-6 flex flex-col">
+        <SheetHeader className="mb-6 text-left shrink-0 border-b pb-4">
+          <div className="flex items-center justify-between">
+            <SheetTitle>Contas & Cartões</SheetTitle>
+            <Button size="sm" onClick={() => setIsAddOpen(true)} className="rounded-full gap-1">
+              <Plus size={16} /> Nova
+            </Button>
+          </div>
+        </SheetHeader>
+        
+        <div className="flex-1 overflow-y-auto space-y-3 pb-8 pr-2">
+          {wallets?.map(w => {
+            return (
+              <Card key={w.id}>
+                <CardContent className="p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-white" style={{ backgroundColor: w.color }}>
+                      <Landmark size={20} />
+                    </div>
+                    <div>
+                      <p className="font-semibold">{w.name}</p>
+                      <p className="text-xs text-muted-foreground">{w.type === 'checking' ? 'Conta Corrente' : w.type === 'savings' ? 'Poupança' : 'Cartão de Crédito'}</p>
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={() => deleteWallet(w.id)}>
+                    <Trash2 size={16} className="text-red-500" />
+                  </Button>
+                </CardContent>
+              </Card>
+            )
+          })}
+          {wallets?.length === 0 && <p className="text-center text-muted-foreground py-8 text-sm">Nenhuma conta cadastrada.</p>}
+        </div>
+      </SheetContent>
+
+      <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+        <DialogContent className="sm:max-w-md w-[calc(100%-32px)] mx-auto rounded-2xl p-6">
+          <DialogHeader>
+            <DialogTitle>Nova Conta/Cartão</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div className="space-y-2">
+              <Label>Nome (Apelido)</Label>
+              <Input value={newWallet.name} onChange={e => setNewWallet({...newWallet, name: e.target.value})} placeholder="Ex: Nubank, Itaú..." />
+            </div>
+            <div className="space-y-2">
+              <Label>Tipo</Label>
+              <select 
+                className="w-full h-12 px-3 border border-input bg-background rounded-md"
+                value={newWallet.type}
+                onChange={e => setNewWallet({...newWallet, type: e.target.value})}
+              >
+                <option value="checking">Conta Corrente</option>
+                <option value="savings">Poupança</option>
+                <option value="credit">Cartão de Crédito</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label>Cor</Label>
+              <div className="flex gap-2">
+                {['#22C55E', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#14B8A6'].map(color => (
+                  <button
+                    key={color}
+                    onClick={() => setNewWallet({...newWallet, color})}
+                    className={`w-8 h-8 rounded-full border-2 ${newWallet.color === color ? 'border-foreground scale-110' : 'border-transparent'}`}
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+              </div>
+            </div>
+            <Button onClick={handleAdd} className="w-full h-12 mt-2">Salvar Conta</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </Sheet>
+  )
+}
+
 function MonthlyGoalsSheet({ month, year }: { month: number; year: number }) {
   const { data: goals, upsertGoal } = useGoals(month, year);
   const [earningGoal, setEarningGoal] = useState('');
@@ -256,28 +353,28 @@ function MonthlyGoalsSheet({ month, year }: { month: number; year: number }) {
   )
 }
 
-function PlatformsSheet() {
-  const { data: platforms, addPlatform, updatePlatform, deletePlatform } = usePlatforms();
+function IncomeCategoriesSheet() {
+  const { data: categories, addIncomeCategory, updateIncomeCategory, deleteIncomeCategory } = useIncomeCategories();
   const [open, setOpen] = useState(false);
   const [isAddOpen, setIsAddOpen] = useState(false);
-  const [newPlatform, setNewPlatform] = useState({ name: '', color: '#3B82F6', icon: 'car' });
+  const [newCategory, setNewCategory] = useState({ name: '', color: '#3B82F6', icon: 'briefcase' });
 
   const handleAdd = async () => {
-    if (!newPlatform.name) return;
-    await addPlatform({ ...newPlatform, is_active: true });
-    setNewPlatform({ name: '', color: '#3B82F6', icon: 'car' });
+    if (!newCategory.name) return;
+    await addIncomeCategory({ ...newCategory, is_active: true });
+    setNewCategory({ name: '', color: '#3B82F6', icon: 'briefcase' });
     setIsAddOpen(false);
   };
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger render={<button type="button" className="w-full text-left" />}>
-        <ActionRow icon={<Briefcase size={18} />} label="Fontes de Renda" />
+        <ActionRow icon={<Briefcase size={18} />} label="Categorias de Receitas" />
       </SheetTrigger>
       <SheetContent side="bottom" className="h-[90vh] sm:h-[80vh] rounded-t-3xl p-6 flex flex-col">
         <SheetHeader className="mb-6 text-left shrink-0 border-b pb-4">
           <div className="flex items-center justify-between">
-            <SheetTitle>Fontes de Renda</SheetTitle>
+            <SheetTitle>Categorias de Receitas</SheetTitle>
             <Button
               size="icon"
               variant="outline"
@@ -289,30 +386,30 @@ function PlatformsSheet() {
             <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
               <DialogContent className="sm:max-w-md w-[calc(100%-32px)] mx-auto rounded-2xl p-6">
                 <DialogHeader>
-                  <DialogTitle>Nova Fonte</DialogTitle>
+                  <DialogTitle>Nova Categoria</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 mt-4">
                   <div className="space-y-2">
                     <Label>Nome</Label>
-                    <Input value={newPlatform.name} onChange={e => setNewPlatform({...newPlatform, name: e.target.value})} className="h-12" placeholder="Ex: Salário, Freelance, Aluguel" />
+                    <Input value={newCategory.name} onChange={e => setNewCategory({...newCategory, name: e.target.value})} className="h-12" placeholder="Ex: Salário, Freelance, Aluguel" />
                   </div>
                   <div className="space-y-2">
                     <Label>Cor de Identificação</Label>
                     <div className="flex gap-4 items-center">
-                      <Input type="color" value={newPlatform.color} onChange={e => setNewPlatform({...newPlatform, color: e.target.value})} className="h-12 w-20 p-1" />
-                      <div className="flex-1 text-sm text-muted-foreground">{newPlatform.color}</div>
+                      <Input type="color" value={newCategory.color} onChange={e => setNewCategory({...newCategory, color: e.target.value})} className="h-12 w-20 p-1" />
+                      <div className="flex-1 text-sm text-muted-foreground">{newCategory.color}</div>
                     </div>
                   </div>
                   <div className="space-y-2">
                     <Label>Ícone</Label>
                     <div className="flex gap-2 flex-wrap">
-                      {Object.keys(platformIconMap).map((iconKey) => {
-                        const IconComponent = platformIconMap[iconKey];
+                      {Object.keys(incomeCategoryIconMap).map((iconKey) => {
+                        const IconComponent = incomeCategoryIconMap[iconKey];
                         return (
                           <div 
                             key={iconKey} 
-                            onClick={() => setNewPlatform({...newPlatform, icon: iconKey})}
-                            className={`w-10 h-10 rounded-full flex items-center justify-center cursor-pointer border-2 transition-all ${newPlatform.icon === iconKey ? 'border-primary bg-primary/10' : 'border-transparent bg-muted'}`}
+                            onClick={() => setNewCategory({...newCategory, icon: iconKey})}
+                            className={`w-10 h-10 rounded-full flex items-center justify-center cursor-pointer border-2 transition-all ${newCategory.icon === iconKey ? 'border-primary bg-primary/10' : 'border-transparent bg-muted'}`}
                           >
                             <IconComponent size={18} />
                           </div>
@@ -321,7 +418,7 @@ function PlatformsSheet() {
                     </div>
                   </div>
                   <Button onClick={handleAdd} className="w-full h-12 font-bold mt-2">
-                    Salvar Fonte
+                    Salvar Categoria
                   </Button>
                 </div>
               </DialogContent>
@@ -329,8 +426,8 @@ function PlatformsSheet() {
           </div>
         </SheetHeader>
         <div className="flex-1 overflow-y-auto space-y-3 pb-8">
-          {platforms?.map(p => {
-            const IconComponent = platformIconMap[p.icon] || Briefcase;
+          {categories?.map(p => {
+            const IconComponent = incomeCategoryIconMap[p.icon] || Briefcase;
             return (
             <div key={p.id} className="flex items-center justify-between p-3 border rounded-xl shadow-sm bg-card">
               <div className="flex items-center gap-3">
@@ -342,18 +439,16 @@ function PlatformsSheet() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <Button variant={p.is_active ? 'default' : 'secondary'} size="icon" className="w-8 h-8 rounded-full" onClick={() => updatePlatform({ id: p.id, is_active: !p.is_active })}>
+                <Button variant={p.is_active ? 'default' : 'secondary'} size="icon" className="w-8 h-8 rounded-full" onClick={() => updateIncomeCategory({ id: p.id, is_active: !p.is_active })}>
                   <Power size={14} className={p.is_active ? 'text-white' : 'text-muted-foreground'} />
                 </Button>
-                <Button variant="ghost" size="icon" className="w-8 h-8 rounded-full text-red-500 hover:text-red-600 hover:bg-red-50" onClick={() => {
-                  if (confirm('Deletar fonte de renda?')) deletePlatform(p.id);
-                }}>
+                <Button variant="ghost" size="icon" className="w-8 h-8 rounded-full text-red-500 hover:text-red-600 hover:bg-red-50" onClick={() => deleteIncomeCategory(p.id)}>
                   <Trash2 size={14} />
                 </Button>
               </div>
             </div>
           )})}
-          {platforms?.length === 0 && <p className="text-center text-muted-foreground py-8 text-sm">Nenhuma fonte de renda cadastrada.</p>}
+          {categories?.length === 0 && <p className="text-center text-muted-foreground py-8 text-sm">Nenhuma categoria cadastrada.</p>}
         </div>
       </SheetContent>
     </Sheet>
@@ -442,9 +537,7 @@ function ExpenseCategoriesSheet() {
                   <p className="font-semibold text-sm">{c.name}</p>
                 </div>
               </div>
-              <Button variant="ghost" size="icon" className="w-8 h-8 rounded-full text-red-500 hover:text-red-600 hover:bg-red-50" onClick={() => {
-                if (confirm('Deletar categoria?')) deleteCategory(c.id);
-              }}>
+              <Button variant="ghost" size="icon" className="w-8 h-8 rounded-full text-red-500 hover:text-red-600 hover:bg-red-50" onClick={() => deleteCategory(c.id)}>
                 <Trash2 size={14} />
               </Button>
             </div>

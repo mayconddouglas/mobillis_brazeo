@@ -9,11 +9,12 @@ export interface Wallet {
   balance: number;
   color: string;
   icon: string;
+  type?: string;
 }
 
 const mockWallets: Wallet[] = [
-  { id: '1', user_id: 'demo', name: 'Conta Corrente', balance: 1500.00, color: '#3B82F6', icon: 'landmark' },
-  { id: '2', user_id: 'demo', name: 'Carteira (Dinheiro)', balance: 150.00, color: '#10B981', icon: 'banknote' },
+  { id: '1', user_id: 'demo', name: 'Conta Corrente', balance: 1500.00, color: '#3B82F6', icon: 'landmark', type: 'checking' },
+  { id: '2', user_id: 'demo', name: 'Cartão de Crédito', balance: -150.00, color: '#10B981', icon: 'credit-card', type: 'credit' },
 ];
 
 export function useWallets() {

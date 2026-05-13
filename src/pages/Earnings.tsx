@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import { useEarnings, usePlatforms, useGoals, Earning } from '../hooks';
+import { useEarnings, useIncomeCategories, useWallets, useGoals, Earning } from '../hooks';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
   Plus, Bike, Car, Calendar as CalendarIcon, Trash2, Edit2, DollarSign,
-  Truck, Package, ShoppingBag, Target, Filter, ChevronRight
+  Truck, Package, ShoppingBag, Target, Filter, ChevronRight, Briefcase, Landmark
 } from 'lucide-react';
 import { format, isToday, isThisWeek, isThisMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -14,7 +14,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import {
   Select,
@@ -26,38 +25,38 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
-
-const platformIconMap: Record<string, any> = {
-  car: Car, bike: Bike, truck: Truck, package: Package, 'shopping-bag': ShoppingBag
-};
-
-// Helper to prevent timezone shifting when parsing dates from YYYY-MM-DD
 import { Switch } from '@/components/ui/switch';
+
+const categoryIconMap: Record<string, any> = {
+  car: Car, bike: Bike, truck: Truck, package: Package, 'shopping-bag': ShoppingBag, briefcase: Briefcase, laptop: Package, 'trending-up': Target
+};
 
 const parseDateLocal = (dateStr: string) => new Date(dateStr + 'T12:00:00');
 
 export default function Earnings() {
   const { data: earnings, addEarning, updateEarning, deleteEarning } = useEarnings();
-  const { data: platforms } = usePlatforms();
+  const { data: categories } = useIncomeCategories();
+  const { data: wallets } = useWallets();
   const { data: goals } = useGoals(new Date().getMonth() + 1, new Date().getFullYear());
   
   const [filter, setFilter] = useState<'today' | 'week' | 'month'>('month');
-  const [platformFilter, setPlatformFilter] = useState<string>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEarning, setEditingEarning] = useState<Earning | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   
+  const [transactionType, setTransactionType] = useState<'single' | 'installment' | 'recurring'>('single');
+  const [installmentCount, setInstallmentCount] = useState('2');
+  const [recurringFrequency, setRecurringFrequency] = useState<'monthly' | 'yearly'>('monthly');
+
   const [newEarning, setNewEarning] = useState({
     amount: '',
-    platform_id: '',
+    category_id: '',
+    wallet_id: '',
     date: format(new Date(), 'yyyy-MM-dd'),
-    note: '',
-    expense_target: '',
-    cycle_start: '',
-    cycle_end: '',
-    is_recurring: false
+    description: '',
   });
 
   const handleOpenEdit = (earning: Earning) => {
@@ -65,29 +64,35 @@ export default function Earnings() {
     setFormError(null);
     setNewEarning({
       amount: earning.amount.toString(),
-      platform_id: earning.platform_id,
+      category_id: earning.category_id,
+      wallet_id: earning.wallet_id || (wallets?.[0]?.id || ''),
       date: earning.date,
-      note: earning.note || '',
-      expense_target: earning.expense_target ? earning.expense_target.toString() : '',
-      cycle_start: earning.cycle_start || '',
-      cycle_end: earning.cycle_end || '',
-      is_recurring: earning.is_recurring || false
+      description: earning.description || '',
     });
+    if (earning.is_installment) {
+      setTransactionType('installment');
+      setInstallmentCount(earning.installment_total?.toString() || '2');
+    } else if (earning.is_recurring) {
+      setTransactionType('recurring');
+      setRecurringFrequency((earning.recurring_frequency as any) || 'monthly');
+    } else {
+      setTransactionType('single');
+    }
     setIsModalOpen(true);
   };
 
   const handleOpenAdd = () => {
     setEditingEarning(null);
     setFormError(null);
+    setTransactionType('single');
+    setInstallmentCount('2');
+    setRecurringFrequency('monthly');
     setNewEarning({
       amount: '',
-      platform_id: platformFilter !== 'all' ? platformFilter : '',
+      category_id: categoryFilter !== 'all' ? categoryFilter : '',
+      wallet_id: wallets?.[0]?.id || '',
       date: format(new Date(), 'yyyy-MM-dd'),
-      note: '',
-      expense_target: '',
-      cycle_start: '',
-      cycle_end: '',
-      is_recurring: false
+      description: '',
     });
     setIsModalOpen(true);
   };
@@ -100,8 +105,12 @@ export default function Earnings() {
       setFormError('Preencha valor e data.');
       return;
     }
-    if (!newEarning.platform_id) {
-      setFormError('Selecione uma fonte de renda.');
+    if (!newEarning.category_id) {
+      setFormError('Selecione uma Categoria de Receita.');
+      return;
+    }
+    if (!newEarning.wallet_id) {
+      setFormError('Selecione uma Conta onde recebeu o valor.');
       return;
     }
 
@@ -111,23 +120,85 @@ export default function Earnings() {
       return;
     }
 
-    const dataPayload = {
-      amount: newAmount,
-      platform_id: newEarning.platform_id,
-      date: newEarning.date,
-      note: newEarning.note || null,
-      expense_target: newEarning.expense_target ? parseFloat(newEarning.expense_target.toString().replace(',', '.')) : undefined,
-      cycle_start: newEarning.cycle_start || undefined,
-      cycle_end: newEarning.cycle_end || undefined,
-      is_recurring: newEarning.is_recurring,
-    };
-
     setSaving(true);
     try {
       if (editingEarning) {
+        const dataPayload = {
+          amount: newAmount,
+          category_id: newEarning.category_id,
+          wallet_id: newEarning.wallet_id,
+          date: newEarning.date,
+          description: newEarning.description || null,
+          is_recurring: transactionType === 'recurring',
+          recurring_frequency: transactionType === 'recurring' ? recurringFrequency : undefined,
+          is_installment: transactionType === 'installment',
+          installment_total: transactionType === 'installment' ? parseInt(installmentCount, 10) : undefined,
+        };
         await updateEarning({ id: editingEarning.id, ...dataPayload });
       } else {
-        await addEarning(dataPayload);
+        const basePayload = {
+          amount: newAmount,
+          category_id: newEarning.category_id,
+          wallet_id: newEarning.wallet_id,
+          description: newEarning.description || null,
+        };
+
+        const payloads: Omit<Earning, 'id' | 'created_at' | 'user_id'>[] = [];
+        
+        if (transactionType === 'single') {
+          payloads.push({
+            ...basePayload,
+            date: newEarning.date,
+            is_recurring: false,
+            is_installment: false,
+          });
+        } else if (transactionType === 'installment') {
+          const count = parseInt(installmentCount, 10);
+          if (isNaN(count) || count < 2) {
+            setFormError('Número de parcelas inválido.');
+            setSaving(false);
+            return;
+          }
+          const parcelAmount = basePayload.amount / count;
+          const groupId = globalThis.crypto?.randomUUID?.() || Date.now().toString();
+          
+          let startDate = parseDateLocal(newEarning.date);
+          for (let i = 1; i <= count; i++) {
+            payloads.push({
+              ...basePayload,
+              amount: parseFloat(parcelAmount.toFixed(2)),
+              date: format(startDate, 'yyyy-MM-dd'),
+              is_recurring: false,
+              is_installment: true,
+              installment_current: i,
+              installment_total: count,
+              group_id: groupId,
+            });
+            startDate.setMonth(startDate.getMonth() + 1);
+          }
+        } else if (transactionType === 'recurring') {
+          const groupId = globalThis.crypto?.randomUUID?.() || Date.now().toString();
+          let startDate = parseDateLocal(newEarning.date);
+          const preGenerateCount = recurringFrequency === 'monthly' ? 12 : 1;
+          for (let i = 0; i < preGenerateCount; i++) {
+            payloads.push({
+              ...basePayload,
+              date: format(startDate, 'yyyy-MM-dd'),
+              is_recurring: true,
+              recurring_frequency: recurringFrequency,
+              group_id: groupId,
+            });
+            if (recurringFrequency === 'monthly') startDate.setMonth(startDate.getMonth() + 1);
+            else startDate.setFullYear(startDate.getFullYear() + 1);
+          }
+        }
+
+        const { addMultipleEarnings } = useEarnings();
+        if (addMultipleEarnings) {
+          await addMultipleEarnings(payloads);
+        } else {
+          await addEarning(payloads[0]);
+        }
       }
       setIsModalOpen(false);
     } catch (err: any) {
@@ -139,10 +210,8 @@ export default function Earnings() {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('Tem certeza que deseja deletar esta receita?')) {
-      await deleteEarning(id);
-      setIsModalOpen(false);
-    }
+    await deleteEarning(id);
+    setIsModalOpen(false);
   };
 
   const timeFilteredEarnings = earnings?.filter(e => {
@@ -154,7 +223,7 @@ export default function Earnings() {
   }) || [];
 
   const filteredEarnings = timeFilteredEarnings.filter(e => 
-    platformFilter === 'all' ? true : e.platform_id === platformFilter
+    categoryFilter === 'all' ? true : e.category_id === categoryFilter
   );
 
   const total = filteredEarnings.reduce((acc, curr) => acc + curr.amount, 0);
@@ -177,16 +246,16 @@ export default function Earnings() {
   const earningGoal = goals?.earning_goal || 0;
   const goalProgress = earningGoal > 0 ? Math.min((total / earningGoal) * 100, 100) : 0;
 
-  // Platform performance breakdown
-  const platformBreakdown = React.useMemo(() => {
+  const categoryBreakdown = React.useMemo(() => {
     const totals: Record<string, number> = {};
     timeFilteredEarnings.forEach(e => {
-      totals[e.platform_id] = (totals[e.platform_id] || 0) + e.amount;
+      totals[e.category_id] = (totals[e.category_id] || 0) + e.amount;
     });
     return Object.entries(totals).map(([id, amount]) => ({ id, amount })).sort((a,b) => b.amount - a.amount);
   }, [timeFilteredEarnings]);
 
-  const selectedPlatformMatch = platforms?.find(p => p.id === newEarning.platform_id);
+  const selectedCategoryMatch = categories?.find(c => c.id === newEarning.category_id);
+  const selectedWalletMatch = wallets?.find(w => w.id === newEarning.wallet_id);
 
   return (
     <div className="p-4 space-y-6 pb-24 relative min-h-screen">
@@ -198,32 +267,32 @@ export default function Earnings() {
           <Button variant={filter === 'month' ? 'default' : 'outline'} size="sm" onClick={() => setFilter('month')}>Este mês</Button>
         </div>
         
-        {/* Platform scrollable filter */}
+        {/* Category scrollable filter */}
         <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar items-center">
           <Filter size={16} className="text-muted-foreground shrink-0 mr-1" />
           <Button 
-            variant={platformFilter === 'all' ? 'secondary' : 'ghost'} 
+            variant={categoryFilter === 'all' ? 'secondary' : 'ghost'} 
             size="sm" 
             className="rounded-full shrink-0"
-            onClick={() => setPlatformFilter('all')}
+            onClick={() => setCategoryFilter('all')}
           >
             Todas
           </Button>
-          {platforms?.map(p => (
+          {categories?.map(c => (
             <Button 
-              key={p.id}
-              variant={platformFilter === p.id ? 'secondary' : 'ghost'} 
+              key={c.id}
+              variant={categoryFilter === c.id ? 'secondary' : 'ghost'} 
               size="sm" 
-              className={`rounded-full shrink-0 gap-2 ${platformFilter === p.id ? 'font-bold' : ''}`}
-              onClick={() => setPlatformFilter(p.id)}
+              className={`rounded-full shrink-0 gap-2 ${categoryFilter === c.id ? 'font-bold' : ''}`}
+              onClick={() => setCategoryFilter(c.id)}
             >
-              <div className="w-4 h-4 rounded-full flex items-center justify-center text-white" style={{ backgroundColor: p.color }}>
+              <div className="w-4 h-4 rounded-full flex items-center justify-center text-white" style={{ backgroundColor: c.color }}>
                 {(() => {
-                  const Icon = platformIconMap[p.icon] || DollarSign;
+                  const Icon = categoryIconMap[c.icon] || DollarSign;
                   return <Icon size={10} />;
                 })()}
               </div>
-              {p.name}
+              {c.name}
             </Button>
           ))}
         </div>
@@ -233,13 +302,13 @@ export default function Earnings() {
       <div className="bg-card border rounded-2xl p-6 text-center shadow-sm relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-400 to-emerald-600"></div>
         <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">
-          Total {platformFilter !== 'all' ? platforms?.find(p => p.id === platformFilter)?.name : 'Recebido'}
+          Total {categoryFilter !== 'all' ? categories?.find(c => c.id === categoryFilter)?.name : 'Recebido'}
         </p>
         <h2 className="text-4xl font-black font-mono text-green-500 tracking-tighter">
           {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(total)}
         </h2>
         
-        {filter === 'month' && platformFilter === 'all' && earningGoal > 0 && (
+        {filter === 'month' && categoryFilter === 'all' && earningGoal > 0 && (
           <div className="mt-6 space-y-2 text-left bg-muted/30 p-3 rounded-xl border border-muted">
             <div className="flex justify-between text-xs font-semibold text-muted-foreground mb-1">
               <span className="flex items-center gap-1"><Target size={12} /> Meta do Mês</span>
@@ -254,22 +323,22 @@ export default function Earnings() {
         )}
       </div>
 
-      {/* Platform Breakdown */}
-      {platformFilter === 'all' && platformBreakdown.length > 0 && (
+      {/* Category Breakdown */}
+      {categoryFilter === 'all' && categoryBreakdown.length > 0 && (
         <div className="space-y-3">
-          <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Desempenho por Fonte</h3>
+          <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Desempenho por Categoria</h3>
           <div className="grid grid-cols-2 gap-3">
-            {platformBreakdown.map(b => {
-              const platform = platforms?.find(p => p.id === b.id);
-              if (!platform) return null;
-              const IconComponent = platformIconMap[platform.icon || 'car'] || DollarSign;
+            {categoryBreakdown.map(b => {
+              const category = categories?.find(c => c.id === b.id);
+              if (!category) return null;
+              const IconComponent = categoryIconMap[category.icon || 'car'] || DollarSign;
               return (
-                <div key={b.id} className="bg-card border rounded-xl p-3 shadow-sm flex items-center justify-between" onClick={() => setPlatformFilter(b.id)}>
+                <div key={b.id} className="bg-card border rounded-xl p-3 shadow-sm flex items-center justify-between" onClick={() => setCategoryFilter(b.id)}>
                   <div className="flex items-center gap-2 max-w-[60%]">
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-white" style={{ backgroundColor: platform.color }}>
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-white" style={{ backgroundColor: category.color }}>
                       <IconComponent size={14} />
                     </div>
-                    <span className="text-xs font-semibold truncate">{platform.name}</span>
+                    <span className="text-xs font-semibold truncate">{category.name}</span>
                   </div>
                   <span className="text-xs font-mono font-bold text-green-600">
                     {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(b.amount)}
@@ -307,27 +376,29 @@ export default function Earnings() {
             </h3>
             <div className="space-y-3">
               {items.map((earning) => {
-                const platform = platforms?.find(p => p.id === earning.platform_id);
-                const IconComponent = platformIconMap[platform?.icon || 'car'] || DollarSign;
+                const category = categories?.find(c => c.id === earning.category_id);
+                const IconComponent = categoryIconMap[category?.icon || 'car'] || DollarSign;
+                const wallet = wallets?.find(w => w.id === earning.wallet_id);
                 
                 return (
                   <Card key={earning.id} className="shadow-sm cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition-all border group" onClick={() => handleOpenEdit(earning)}>
                     <CardContent className="p-3 pr-4 flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-white shadow-sm" style={{ backgroundColor: platform?.color || '#94a3b8' }}>
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-white shadow-sm" style={{ backgroundColor: category?.color || '#94a3b8' }}>
                           <IconComponent size={18} />
                         </div>
                         <div>
-                          <p className="font-semibold text-sm leading-tight group-hover:text-primary transition-colors">{platform?.name || 'Deletada'}</p>
-                          {(earning.cycle_start && earning.cycle_end) ? (
-                            <p className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded inline-block mt-0.5 font-medium border border-primary/20">
-                              Ref: {format(parseDateLocal(earning.cycle_start), 'dd/MM')} a {format(parseDateLocal(earning.cycle_end), 'dd/MM')}
-                            </p>
-                          ) : (
-                            <p className="text-xs text-muted-foreground line-clamp-1">{earning.note || 'Receita'}</p>
-                          )}
-                          {(earning.cycle_start && earning.cycle_end && earning.note) && (
-                            <p className="text-[10px] text-muted-foreground mt-0.5 max-w-[200px] truncate">{earning.note}</p>
+                          <p className="font-semibold text-sm leading-tight group-hover:text-primary transition-colors">
+                            {category?.name || 'Deletada'}
+                            {earning.is_installment && ` (${earning.installment_current}/${earning.installment_total})`}
+                            {earning.is_recurring && ` (Rotineira)`}
+                          </p>
+                          <div className="flex items-center gap-1 mt-0.5">
+                            <Landmark size={10} className="text-muted-foreground" />
+                            <p className="text-[10px] text-muted-foreground font-medium">{wallet?.name || 'Conta Removida'}</p>
+                          </div>
+                          {earning.description && (
+                            <p className="text-[10px] text-muted-foreground mt-0.5 max-w-[200px] truncate">{earning.description}</p>
                           )}
                         </div>
                       </div>
@@ -383,22 +454,42 @@ export default function Earnings() {
                 className="h-14 text-2xl font-black font-mono text-green-600 px-4"
               />
             </div>
-            
+
             <div className="space-y-2">
-              <Label htmlFor="platform">Fonte de Renda</Label>
+              <Label htmlFor="wallet">Conta / Cartão</Label>
               <Select 
-                value={newEarning.platform_id} 
-                onValueChange={(val) => setNewEarning({...newEarning, platform_id: val})}
+                value={newEarning.wallet_id} 
+                onValueChange={(val) => setNewEarning({...newEarning, wallet_id: val})}
                 required
               >
                 <SelectTrigger className="h-12">
-                  <SelectValue placeholder="Selecione a fonte de renda">
-                    {selectedPlatformMatch ? selectedPlatformMatch.name : (newEarning.platform_id ? 'Fonte removida' : 'Selecione a fonte')}
+                  <SelectValue placeholder="Selecione a conta">
+                    {selectedWalletMatch ? selectedWalletMatch.name : (newEarning.wallet_id ? 'Conta removida' : 'Selecione a conta')}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  {platforms?.map(p => (
-                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                  {wallets?.map(w => (
+                    <SelectItem key={w.id} value={w.id}>{w.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="category">Categoria de Receita</Label>
+              <Select 
+                value={newEarning.category_id} 
+                onValueChange={(val) => setNewEarning({...newEarning, category_id: val})}
+                required
+              >
+                <SelectTrigger className="h-12">
+                  <SelectValue placeholder="Selecione a categoria">
+                    {selectedCategoryMatch ? selectedCategoryMatch.name : (newEarning.category_id ? 'Categoria removida' : 'Selecione a categoria')}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {categories?.map(c => (
+                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -416,56 +507,16 @@ export default function Earnings() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4 border-t pt-4 mt-2">
-              <div className="col-span-2">
-                <Label className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">Período Referente (Fechamento Semanal etc)</Label>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="cycle_start" className="text-xs">De (Opcional)</Label>
-                <Input 
-                  id="cycle_start" 
-                  type="date" 
-                  value={newEarning.cycle_start}
-                  onChange={(e) => setNewEarning({...newEarning, cycle_start: e.target.value})}
-                  className="h-10 text-sm"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="cycle_end" className="text-xs">Até (Opcional)</Label>
-                <Input 
-                  id="cycle_end" 
-                  type="date" 
-                  value={newEarning.cycle_end}
-                  onChange={(e) => setNewEarning({...newEarning, cycle_end: e.target.value})}
-                  className="h-10 text-sm"
-                />
-              </div>
-            </div>
-
             <div className="space-y-2 border-t pt-4 mt-2">
-              <Label htmlFor="note">Observação (Opcional)</Label>
+              <Label htmlFor="description">Descrição</Label>
               <Input 
-                id="note" 
+                id="description" 
                 type="text" 
-                placeholder="Ex: Gorjeta, bônus dinâmico"
-                value={newEarning.note}
-                onChange={(e) => setNewEarning({...newEarning, note: e.target.value})}
+                placeholder="Ex: Pagamento extra, freelancer do projeto..."
+                value={newEarning.description}
+                onChange={(e) => setNewEarning({...newEarning, description: e.target.value})}
                 className="h-12"
               />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="expense_target">Meta de Gasto (Opcional)</Label>
-              <Input 
-                id="expense_target" 
-                type="number" 
-                step="0.01"
-                placeholder="0,00"
-                value={newEarning.expense_target}
-                onChange={(e) => setNewEarning({...newEarning, expense_target: e.target.value})}
-                className="h-12"
-              />
-              <p className="text-[10px] text-muted-foreground leading-tight">Valor destinado para gastos do dia (ex: almoço, combustível)</p>
             </div>
 
             <div className="flex items-center justify-between pt-2">

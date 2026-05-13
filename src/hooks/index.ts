@@ -1,6 +1,6 @@
 export * from './useEarnings';
 export * from './useExpenses';
-export * from './usePlatforms';
+export * from './useIncomeCategories';
 export * from './useWallets';
 export * from './useExpenseCategories';
 export * from './useGoals';

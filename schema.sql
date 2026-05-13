@@ -22,9 +22,9 @@ CREATE POLICY "Usuários podem inserir o próprio perfil"
 ON public.profiles FOR INSERT WITH CHECK (auth.uid() = id);
 
 -- ========================================================
--- 2. TABELA DE PLATAFORMAS (PLATFORMS)
+-- 2. TABELA DE CATEGORIAS DE RECEITAS (INCOME_CATEGORIES) - ANTIGA PLATFORMS
 -- ========================================================
-CREATE TABLE IF NOT EXISTS public.platforms (
+CREATE TABLE IF NOT EXISTS public.income_categories (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   name TEXT NOT NULL,
@@ -34,10 +34,10 @@ CREATE TABLE IF NOT EXISTS public.platforms (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
-ALTER TABLE public.platforms ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.income_categories ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Usuários podem gerenciar suas plataformas" 
-ON public.platforms FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Usuários podem gerenciar suas categorias de receita" 
+ON public.income_categories FOR ALL USING (auth.uid() = user_id);
 
 -- ========================================================
 -- 3. TABELA DE CATEGORIAS DE GASTOS (EXPENSE_CATEGORIES)
@@ -57,7 +57,7 @@ CREATE POLICY "Usuários podem gerenciar suas categorias"
 ON public.expense_categories FOR ALL USING (auth.uid() = user_id);
 
 -- ========================================================
--- 4. TABELA DE CARTEIRAS (WALLETS)
+-- 4. TABELA DE CONTAS E CARTÕES (WALLETS)
 -- ========================================================
 CREATE TABLE IF NOT EXISTS public.wallets (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
@@ -66,12 +66,13 @@ CREATE TABLE IF NOT EXISTS public.wallets (
   balance NUMERIC DEFAULT 0 NOT NULL,
   color TEXT NOT NULL,
   icon TEXT NOT NULL,
+  type TEXT DEFAULT 'checking', -- check, savings, credit
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
 ALTER TABLE public.wallets ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Usuários podem gerenciar suas carteiras" 
+CREATE POLICY "Usuários podem gerenciar suas contas" 
 ON public.wallets FOR ALL USING (auth.uid() = user_id);
 
 -- ========================================================
@@ -99,13 +100,11 @@ ON public.monthly_goals FOR ALL USING (auth.uid() = user_id);
 CREATE TABLE IF NOT EXISTS public.earnings (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
-  platform_id UUID REFERENCES public.platforms(id) ON DELETE SET NULL,
+  category_id UUID REFERENCES public.income_categories(id) ON DELETE SET NULL,
+  wallet_id UUID REFERENCES public.wallets(id) ON DELETE SET NULL,
   amount NUMERIC NOT NULL,
   date DATE NOT NULL,
-  note TEXT,
-  expense_target NUMERIC,
-  cycle_start DATE,
-  cycle_end DATE,
+  description TEXT,
   is_recurring BOOLEAN DEFAULT false,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
@@ -156,7 +155,7 @@ BEGIN
   (new.id, 'Lazer', '#f59e0b', 'coffee');
 
   -- 3. Criar fontes de renda padrão (Salário, Freelance, Investimentos)
-  INSERT INTO public.platforms (user_id, name, color, icon) VALUES
+  INSERT INTO public.income_categories (user_id, name, color, icon) VALUES
   (new.id, 'Salário', '#22c55e', 'briefcase'),
   (new.id, 'Freelance', '#6366f1', 'laptop'),
   (new.id, 'Investimentos', '#eab308', 'trending-up');

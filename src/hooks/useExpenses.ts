@@ -10,7 +10,15 @@ export interface Expense {
   amount: number;
   description: string;
   date: string;
+  
   is_recurring?: boolean;
+  recurring_frequency?: 'monthly' | 'yearly' | 'weekly' | 'custom';
+  
+  is_installment?: boolean;
+  installment_current?: number;
+  installment_total?: number;
+  group_id?: string;
+  
   created_at: string;
 }
 
@@ -131,9 +139,42 @@ export function useExpenses() {
     },
   });
 
+  const addMultipleMutation = useMutation({
+    mutationFn: async (expenses: Omit<Expense, 'id' | 'created_at' | 'user_id'>[]) => {
+      if (isDemo) {
+        const now = new Date().toISOString();
+        const nexts = expenses.map(expense => ({
+          ...expense,
+          id: safeId(),
+          user_id: user?.id || 'demo',
+          created_at: now,
+        }));
+        const current = loadDemoExpenses(user?.id);
+        const updated = [...nexts, ...current];
+        saveDemoExpenses(user?.id, updated);
+        return nexts;
+      }
+      const payloads = expenses.map(e => ({ ...e, user_id: user?.id }));
+      const { data, error } = await supabase.from('expenses').insert(payloads).select();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (created) => {
+      if (isDemo) {
+        queryClient.setQueryData<Expense[]>(['expenses', user?.id], (prev) => {
+          const safePrev = prev ?? loadDemoExpenses(user?.id);
+          return [...(created as Expense[]), ...safePrev];
+        });
+        return;
+      }
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
+    },
+  });
+
   return { 
     ...query, 
     addExpense: addMutation.mutateAsync,
+    addMultipleExpenses: addMultipleMutation.mutateAsync,
     updateExpense: updateMutation.mutateAsync,
     deleteExpense: deleteMutation.mutateAsync
   };

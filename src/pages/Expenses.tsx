@@ -27,7 +27,7 @@ import { Switch } from '@/components/ui/switch';
 const parseDateLocal = (dateStr: string) => new Date(dateStr + 'T12:00:00');
 
 export default function Expenses() {
-  const { data: expenses, addExpense, updateExpense, deleteExpense } = useExpenses();
+  const { data: expenses, addExpense, addMultipleExpenses, updateExpense, deleteExpense } = useExpenses();
   const { data: categories } = useExpenseCategories();
   const { data: wallets, updateWallet } = useWallets();
   
@@ -39,13 +39,16 @@ export default function Expenses() {
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   
+  const [transactionType, setTransactionType] = useState<'single' | 'installment' | 'recurring'>('single');
+  const [installmentCount, setInstallmentCount] = useState('2');
+  const [recurringFrequency, setRecurringFrequency] = useState<'monthly' | 'yearly'>('monthly');
+
   const [newExpense, setNewExpense] = useState({
     amount: '',
     category_id: '',
     wallet_id: '',
     date: format(new Date(), 'yyyy-MM-dd'),
     description: '',
-    is_recurring: false
   });
 
   const handleOpenEdit = (expense: Expense) => {
@@ -57,21 +60,31 @@ export default function Expenses() {
       wallet_id: expense.wallet_id,
       date: expense.date,
       description: expense.description || '',
-      is_recurring: expense.is_recurring || false
     });
+    if (expense.is_installment) {
+      setTransactionType('installment');
+      setInstallmentCount(expense.installment_total?.toString() || '2');
+    } else if (expense.is_recurring) {
+      setTransactionType('recurring');
+      setRecurringFrequency((expense.recurring_frequency as any) || 'monthly');
+    } else {
+      setTransactionType('single');
+    }
     setIsModalOpen(true);
   };
 
   const handleOpenAdd = () => {
     setEditingExpense(null);
     setFormError(null);
+    setTransactionType('single');
+    setInstallmentCount('2');
+    setRecurringFrequency('monthly');
     setNewExpense({
       amount: '',
       category_id: categoryFilter !== 'all' ? categoryFilter : '',
       wallet_id: '',
       date: format(new Date(), 'yyyy-MM-dd'),
       description: '',
-      is_recurring: false
     });
     setIsModalOpen(true);
   };
@@ -93,24 +106,30 @@ export default function Expenses() {
       return;
     }
 
-    const newAmount = parseFloat(newExpense.amount.toString().replace(',', '.'));
+    let newAmount = parseFloat(newExpense.amount.toString().replace(',', '.'));
     if (Number.isNaN(newAmount) || newAmount <= 0) {
       setFormError('Informe um valor válido.');
       return;
     }
-    
-    const dataPayload = {
-      amount: newAmount,
-      category_id: newExpense.category_id,
-      wallet_id: newExpense.wallet_id,
-      date: newExpense.date,
-      description: newExpense.description,
-      is_recurring: newExpense.is_recurring,
-    };
 
     setSaving(true);
     try {
       if (editingExpense) {
+        // Edit single expense
+        const dataPayload = {
+          amount: newAmount,
+          category_id: newExpense.category_id,
+          wallet_id: newExpense.wallet_id,
+          date: newExpense.date,
+          description: newExpense.description,
+          // note: we could allow changing between single, recurring, etc for existing one,
+          // but usually we just keep the previous attributes if we edit a single entry
+          is_recurring: transactionType === 'recurring',
+          recurring_frequency: transactionType === 'recurring' ? recurringFrequency : undefined,
+          is_installment: transactionType === 'installment',
+          installment_total: transactionType === 'installment' ? parseInt(installmentCount, 10) : undefined,
+        };
+
         await updateExpense({ id: editingExpense.id, ...dataPayload });
         
         if (editingExpense.wallet_id === dataPayload.wallet_id) {
@@ -132,11 +151,81 @@ export default function Expenses() {
           }
         }
       } else {
-        await addExpense(dataPayload);
+        // Adding new expense
+        const basePayload = {
+          amount: newAmount,
+          category_id: newExpense.category_id,
+          wallet_id: newExpense.wallet_id,
+          description: newExpense.description,
+        };
+
+        // Determine if we need multiple inserts
+        const payloads: Omit<Expense, 'id' | 'created_at' | 'user_id'>[] = [];
+        let totalDeductionFromWallet = 0;
         
-        const wallet = wallets?.find(w => w.id === dataPayload.wallet_id);
+        if (transactionType === 'single') {
+          payloads.push({
+            ...basePayload,
+            date: newExpense.date,
+            is_recurring: false,
+            is_installment: false,
+          });
+          totalDeductionFromWallet = basePayload.amount;
+        } else if (transactionType === 'installment') {
+          const count = parseInt(installmentCount, 10);
+          if (isNaN(count) || count < 2) {
+            setFormError('Número de parcelas inválido.');
+            setSaving(false);
+            return;
+          }
+          // Usually installments divide the total amount
+          // Or is the input amount the parcel amount? Let's assume input is parcel amount to keep code simple, actually usually users input total amount in "parceladas" but we can split or replicate. Let's replicate as parcel amount for simplicity with wallets.
+          // Let's divide the amount by count
+          const parcelAmount = basePayload.amount / count;
+          const groupId = globalThis.crypto?.randomUUID?.() || Date.now().toString();
+          
+          let startDate = parseDateLocal(newExpense.date);
+          for (let i = 1; i <= count; i++) {
+            payloads.push({
+              ...basePayload,
+              amount: parseFloat(parcelAmount.toFixed(2)),
+              date: format(startDate, 'yyyy-MM-dd'),
+              is_recurring: false,
+              is_installment: true,
+              installment_current: i,
+              installment_total: count,
+              group_id: groupId,
+            });
+            // increment a month
+            startDate.setMonth(startDate.getMonth() + 1);
+          }
+          totalDeductionFromWallet = basePayload.amount; // full amount deduces over time, wait, we deduct full amount now or just first parcel? We should only deduct what is paid. Actually, a credit card expense isn't deducted from balance immediately usually, but let's deduct just the first parcel or full? Let's deduct from wallet the amount for this month.
+          totalDeductionFromWallet = parseFloat(parcelAmount.toFixed(2));
+        } else if (transactionType === 'recurring') {
+          const groupId = globalThis.crypto?.randomUUID?.() || Date.now().toString();
+          
+          let startDate = parseDateLocal(newExpense.date);
+          // Pre-generate 12 months for recurring
+          const preGenerateCount = recurringFrequency === 'monthly' ? 12 : 1;
+          for (let i = 0; i < preGenerateCount; i++) {
+            payloads.push({
+              ...basePayload,
+              date: format(startDate, 'yyyy-MM-dd'),
+              is_recurring: true,
+              recurring_frequency: recurringFrequency,
+              group_id: groupId,
+            });
+            if (recurringFrequency === 'monthly') startDate.setMonth(startDate.getMonth() + 1);
+            else startDate.setFullYear(startDate.getFullYear() + 1);
+          }
+          totalDeductionFromWallet = basePayload.amount; // deduct just the first occurrence
+        }
+
+        await addMultipleExpenses?.(payloads) || await addExpense(payloads[0]);
+        
+        const wallet = wallets?.find(w => w.id === basePayload.wallet_id);
         if (wallet) {
-          await updateWallet({ id: wallet.id, balance: wallet.balance - dataPayload.amount });
+          await updateWallet({ id: wallet.id, balance: wallet.balance - totalDeductionFromWallet });
         }
       }
 
@@ -259,7 +348,11 @@ export default function Expenses() {
                           <Tag size={18} />
                         </div>
                         <div>
-                          <p className="font-semibold text-sm leading-tight group-hover:text-primary transition-colors">{expense.description}</p>
+                          <p className="font-semibold text-sm leading-tight group-hover:text-primary transition-colors">
+                            {expense.description}
+                            {expense.is_installment && ` (${expense.installment_current}/${expense.installment_total})`}
+                            {expense.is_recurring && ` (Rotineira)` }
+                          </p>
                           <p className="text-xs text-muted-foreground line-clamp-1">{category?.name || 'Desconhecida'} • {wallet?.name || 'Desconhecida'}</p>
                         </div>
                       </div>
@@ -350,7 +443,7 @@ export default function Expenses() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="wallet">Conta</Label>
+              <Label htmlFor="wallet">Conta / Cartão</Label>
               <Select 
                 value={newExpense.wallet_id} 
                 onValueChange={(val) => setNewExpense({...newExpense, wallet_id: val})}
@@ -381,19 +474,67 @@ export default function Expenses() {
               />
             </div>
 
-            <div className="flex items-center justify-between pt-2">
-              <div className="space-y-0.5">
-                <Label htmlFor="recurring" className="text-base">Despesa Fixa / Recorrente</Label>
-                <p className="text-xs text-muted-foreground">
-                  Marcando esta opção, a despesa se repete todo mês.
-                </p>
+            <div className="pt-2 border-t mt-2">
+              <Label className="mb-2 block">Tipo de Despesa</Label>
+              <div className="flex gap-2">
+                <Button 
+                  type="button" 
+                  variant={transactionType === 'single' ? 'default' : 'outline'} 
+                  className="flex-1"
+                  onClick={() => setTransactionType('single')}
+                >
+                  Única
+                </Button>
+                <Button 
+                  type="button" 
+                  variant={transactionType === 'installment' ? 'default' : 'outline'} 
+                  className="flex-1"
+                  onClick={() => setTransactionType('installment')}
+                >
+                  Parcelada
+                </Button>
+                <Button 
+                  type="button" 
+                  variant={transactionType === 'recurring' ? 'default' : 'outline'} 
+                  className="flex-1"
+                  onClick={() => setTransactionType('recurring')}
+                >
+                  Fixa
+                </Button>
               </div>
-              <Switch
-                id="recurring"
-                checked={newExpense.is_recurring}
-                onCheckedChange={(checked) => setNewExpense({...newExpense, is_recurring: checked})}
-              />
             </div>
+
+            {transactionType === 'installment' && (
+              <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                <Label htmlFor="installments">Número de Parcelas</Label>
+                <Select value={installmentCount} onValueChange={setInstallmentCount}>
+                  <SelectTrigger className="h-12 w-full">
+                    <SelectValue placeholder="Selecione..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[2,3,4,5,6,10,12,24].map((num) => (
+                      <SelectItem key={num} value={num.toString()}>{num}x</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">O valor será dividido pelo número de parcelas.</p>
+              </div>
+            )}
+
+            {transactionType === 'recurring' && (
+              <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                <Label htmlFor="frequency">Frequência</Label>
+                <Select value={recurringFrequency} onValueChange={(val: any) => setRecurringFrequency(val)}>
+                  <SelectTrigger className="h-12 w-full">
+                    <SelectValue placeholder="Selecione..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="monthly">Mensal</SelectItem>
+                    <SelectItem value="yearly">Anual</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <div className="flex gap-2 pt-4 border-t mt-2">
               {editingExpense && (

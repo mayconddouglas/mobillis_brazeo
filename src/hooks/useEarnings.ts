@@ -6,21 +6,27 @@ import { format, subDays } from 'date-fns';
 export interface Earning {
   id: string;
   user_id: string;
-  platform_id: string;
+  category_id: string;
+  wallet_id: string;
   amount: number;
   date: string;
-  note: string | null;
-  expense_target?: number;
-  cycle_start?: string;
-  cycle_end?: string;
+  description: string | null;
+  
   is_recurring?: boolean;
+  recurring_frequency?: 'monthly' | 'yearly' | 'weekly' | 'custom';
+  
+  is_installment?: boolean;
+  installment_current?: number;
+  installment_total?: number;
+  group_id?: string;
+  
   created_at: string;
 }
 
 const mockEarnings: Earning[] = [
-  { id: '1', user_id: 'demo-user-123', platform_id: '1', amount: 120.50, date: format(new Date(), 'yyyy-MM-dd'), note: 'Bonus fds', created_at: new Date().toISOString() },
-  { id: '2', user_id: 'demo-user-123', platform_id: '2', amount: 85.00, date: format(subDays(new Date(), 1), 'yyyy-MM-dd'), note: null, created_at: new Date().toISOString() },
-  { id: '3', user_id: 'demo-user-123', platform_id: '1', amount: 200.00, date: format(subDays(new Date(), 2), 'yyyy-MM-dd'), note: 'Chuva', created_at: new Date().toISOString() },
+  { id: '1', user_id: 'demo-user-123', category_id: '1', wallet_id: '1', amount: 120.50, date: format(new Date(), 'yyyy-MM-dd'), description: 'Bonus fds', created_at: new Date().toISOString() },
+  { id: '2', user_id: 'demo-user-123', category_id: '2', wallet_id: '1', amount: 85.00, date: format(subDays(new Date(), 1), 'yyyy-MM-dd'), description: null, created_at: new Date().toISOString() },
+  { id: '3', user_id: 'demo-user-123', category_id: '1', wallet_id: '1', amount: 200.00, date: format(subDays(new Date(), 2), 'yyyy-MM-dd'), description: 'Chuva', created_at: new Date().toISOString() },
 ];
 
 export function useEarnings() {
@@ -70,9 +76,30 @@ export function useEarnings() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['earnings'] }),
   });
 
+  const addMultipleMutation = useMutation({
+    mutationFn: async (earnings: Omit<Earning, 'id' | 'created_at' | 'user_id'>[]) => {
+      if (isDemo) {
+        const nexts = earnings.map(e => ({
+          ...e,
+          id: Math.random().toString(),
+          user_id: user!.id,
+          created_at: new Date().toISOString()
+        }));
+        mockEarnings.push(...nexts);
+        return nexts;
+      }
+      const payloads = earnings.map(e => ({ ...e, user_id: user?.id }));
+      const { data, error } = await supabase.from('earnings').insert(payloads).select();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['earnings'] }),
+  });
+
   return { 
     ...query, 
     addEarning: addMutation.mutateAsync,
+    addMultipleEarnings: addMultipleMutation.mutateAsync,
     updateEarning: updateMutation.mutateAsync,
     deleteEarning: deleteMutation.mutateAsync
   };

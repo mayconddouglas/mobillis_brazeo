@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { useEarnings, useExpenses, useWallets, useGoals, usePlatforms } from '../hooks';
+import { useEarnings, useExpenses, useWallets, useGoals, useIncomeCategories } from '../hooks';
 import { format, isThisMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Card, CardContent } from '@/components/ui/card';
@@ -13,7 +13,7 @@ export default function Dashboard() {
   const { data: earnings } = useEarnings();
   const { data: expenses } = useExpenses();
   const { data: goals } = useGoals(new Date().getMonth() + 1, new Date().getFullYear());
-  const { data: platforms } = usePlatforms();
+  const { data: categories } = useIncomeCategories();
 
   const totalEarnings = earnings?.reduce((acc, curr) => acc + curr.amount, 0) || 0;
   const totalExpenses = expenses?.reduce((acc, curr) => acc + curr.amount, 0) || 0;
@@ -26,9 +26,9 @@ export default function Dashboard() {
   const expenseProgress = Math.min((totalExpenses / expenseLimit) * 100, 100);
 
   // Mocks for charts
-  const pieData = platforms?.map(p => ({
+  const pieData = categories?.map(p => ({
     name: p.name,
-    value: earnings?.filter(e => e.platform_id === p.id).reduce((acc, curr) => acc + curr.amount, 0) || 0,
+    value: earnings?.filter(e => e.category_id === p.id).reduce((acc, curr) => acc + curr.amount, 0) || 0,
     color: p.color
   })).filter(d => d.value > 0) || [];
 
@@ -118,15 +118,15 @@ export default function Dashboard() {
               <TrendingUp size={20} />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground font-medium">Fontes de Renda</p>
-              <p className="font-bold text-sm">{platforms?.length || 0}</p>
+              <p className="text-xs text-muted-foreground font-medium">Categorias de Renda</p>
+              <p className="font-bold text-sm">{categories?.length || 0}</p>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Chart: Platforms */}
-      <h3 className="font-semibold text-sm tracking-tight mt-6">Receitas por Fonte</h3>
+      {/* Chart: Income Categories */}
+      <h3 className="font-semibold text-sm tracking-tight mt-6">Receitas por Categoria</h3>
       <Card className="shadow-sm">
         <CardContent className="p-4">
           <div className="h-[200px] w-full">

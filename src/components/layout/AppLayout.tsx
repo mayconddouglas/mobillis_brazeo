@@ -47,49 +47,41 @@ export default function AppLayout() {
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton
-                    asChild
+                    render={<NavLink to="/receitas" />}
                     isActive={pathname === '/receitas'}
                   >
-                    <NavLink to="/receitas">
-                      <TrendingUp className="size-4" />
-                      <span>Receitas</span>
-                    </NavLink>
+                    <TrendingUp className="size-4" />
+                    <span>Receitas</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 
                 <SidebarMenuItem>
                   <SidebarMenuButton
-                    asChild
+                    render={<NavLink to="/despesas" />}
                     isActive={pathname === '/despesas'}
                   >
-                    <NavLink to="/despesas">
-                      <Receipt className="size-4" />
-                      <span>Despesas</span>
-                    </NavLink>
+                    <Receipt className="size-4" />
+                    <span>Despesas</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
 
                 <SidebarMenuItem>
                   <SidebarMenuButton
-                    asChild
+                    render={<NavLink to="/contas" />}
                     isActive={pathname === '/contas'}
                   >
-                    <NavLink to="/contas">
-                      <Wallet className="size-4" />
-                      <span>Contas</span>
-                    </NavLink>
+                    <Wallet className="size-4" />
+                    <span>Contas</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
 
                 <SidebarMenuItem>
                   <SidebarMenuButton
-                    asChild
+                    render={<NavLink to="/configuracoes" />}
                     isActive={pathname === '/configuracoes'}
                   >
-                    <NavLink to="/configuracoes">
-                      <Settings className="size-4" />
-                      <span>Configurações</span>
-                    </NavLink>
+                    <Settings className="size-4" />
+                    <span>Configurações</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>
