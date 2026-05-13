@@ -323,7 +323,9 @@ function PlatformsSheet() {
                       })}
                     </div>
                   </div>
-                  <Button onClick={handleAdd} className="w-full h-12 font-bold mt-2">Salvar Fonte</Button>
+                  <Button onClick={handleAdd} className="w-full h-12 font-bold mt-2">
+                    Salvar Fonte
+                  </Button>
                 </div>
               </DialogContent>
             </Dialog>
@@ -347,14 +349,14 @@ function PlatformsSheet() {
                   <Power size={14} className={p.is_active ? 'text-white' : 'text-muted-foreground'} />
                 </Button>
                 <Button variant="ghost" size="icon" className="w-8 h-8 rounded-full text-red-500 hover:text-red-600 hover:bg-red-50" onClick={() => {
-                  if (confirm('Deletar plataforma?')) deletePlatform(p.id);
+                  if (confirm('Deletar fonte de renda?')) deletePlatform(p.id);
                 }}>
                   <Trash2 size={14} />
                 </Button>
               </div>
             </div>
           )})}
-          {platforms?.length === 0 && <p className="text-center text-muted-foreground py-8 text-sm">Nenhuma plataforma cadastrada.</p>}
+          {platforms?.length === 0 && <p className="text-center text-muted-foreground py-8 text-sm">Nenhuma fonte de renda cadastrada.</p>}
         </div>
       </SheetContent>
     </Sheet>

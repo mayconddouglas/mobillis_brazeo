@@ -48,7 +48,7 @@ export default function Wallets() {
     e.preventDefault();
     if (!transferData.from_wallet_id || !transferData.to_wallet_id || !transferData.amount) return;
     if (transferData.from_wallet_id === transferData.to_wallet_id) {
-      alert("Selecione carteiras diferentes para transferir.");
+      alert("Selecione contas diferentes para transferir.");
       return;
     }
     
@@ -201,7 +201,7 @@ export default function Wallets() {
             <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
               <Plus size={24} />
             </div>
-            <p className="font-semibold text-sm">Nova Carteira</p>
+            <p className="font-semibold text-sm">Nova Conta</p>
           </div>
         </Card>
       </div>
@@ -283,14 +283,14 @@ export default function Wallets() {
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="sm:max-w-md w-[calc(100%-32px)] mx-auto rounded-2xl p-6">
           <DialogHeader>
-            <DialogTitle>{editingWallet ? 'Editar Carteira' : 'Nova Carteira'}</DialogTitle>
+            <DialogTitle>{editingWallet ? 'Editar Conta' : 'Nova Conta'}</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSaveWallet} className="space-y-4 mt-4">
+          <form onSubmit={handleSaveWallet} className="space-y-5 mt-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Nome da Carteira</Label>
+              <Label htmlFor="name">Nome da Conta</Label>
               <Input 
                 id="name" 
-                placeholder="Ex: Nubank, Carteira Física"
+                placeholder="Ex: Conta Corrente, Dinheiro"
                 required
                 value={newWallet.name}
                 onChange={(e) => setNewWallet({...newWallet, name: e.target.value})}
@@ -344,7 +344,7 @@ export default function Wallets() {
                 </Button>
               )}
               <Button type="submit" className="flex-1 h-12 font-bold text-base">
-                {editingWallet ? 'Salvar Edição' : 'Criar Carteira'}
+                {editingWallet ? 'Salvar Edição' : 'Criar Conta'}
               </Button>
             </div>
           </form>
@@ -372,15 +372,15 @@ export default function Wallets() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="deposit_wallet">Em qual carteira?</Label>
+              <Label htmlFor="deposit_wallet">Em qual conta?</Label>
               <Select 
                 value={depositData.wallet_id} 
-                onValueChange={(val) => setDepositData({...depositData, wallet_id: val})}
+                onValueChange={(val) => setDepositData({ ...depositData, wallet_id: val })}
                 required
               >
                 <SelectTrigger className="h-12">
-                  <SelectValue placeholder="Selecione a carteira">
-                     {wallets?.find((w: Wallet) => w.id === depositData.wallet_id)?.name || 'Selecione a carteira'}
+                  <SelectValue placeholder="Selecione a conta">
+                     {wallets?.find((w: Wallet) => w.id === depositData.wallet_id)?.name || 'Selecione a conta'}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
@@ -422,15 +422,15 @@ export default function Wallets() {
             </div>
 
             <div className="space-y-2">
-              <Label>Carteira de Origem</Label>
+              <Label>Conta de Origem</Label>
               <Select 
                 value={transferData.from_wallet_id} 
-                onValueChange={(val) => setTransferData({...transferData, from_wallet_id: val})}
+                onValueChange={(val) => setTransferData({ ...transferData, from_wallet_id: val })}
                 required
               >
                 <SelectTrigger className="h-12">
-                  <SelectValue placeholder="De qual carteira?">
-                     {wallets?.find((w: Wallet) => w.id === transferData.from_wallet_id)?.name || 'De qual carteira?'}
+                  <SelectValue placeholder="De qual conta?">
+                     {wallets?.find((w: Wallet) => w.id === transferData.from_wallet_id)?.name || 'De qual conta?'}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
@@ -442,15 +442,15 @@ export default function Wallets() {
             </div>
 
             <div className="space-y-2">
-              <Label>Carteira de Destino</Label>
+              <Label>Conta de Destino</Label>
               <Select 
                 value={transferData.to_wallet_id} 
-                onValueChange={(val) => setTransferData({...transferData, to_wallet_id: val})}
+                onValueChange={(val) => setTransferData({ ...transferData, to_wallet_id: val })}
                 required
               >
                 <SelectTrigger className="h-12">
-                  <SelectValue placeholder="Para qual carteira?">
-                    {wallets?.find((w: Wallet) => w.id === transferData.to_wallet_id)?.name || 'Para qual carteira?'}
+                  <SelectValue placeholder="Para qual conta?">
+                    {wallets?.find((w: Wallet) => w.id === transferData.to_wallet_id)?.name || 'Para qual conta?'}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>

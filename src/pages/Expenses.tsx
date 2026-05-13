@@ -89,7 +89,7 @@ export default function Expenses() {
       return;
     }
     if (!newExpense.wallet_id) {
-      setFormError('Selecione uma carteira.');
+      setFormError('Selecione uma conta.');
       return;
     }
 
@@ -142,7 +142,7 @@ export default function Expenses() {
 
       setIsModalOpen(false);
     } catch (err: any) {
-      const msg = err?.message || 'Não foi possível salvar o gasto.';
+      const msg = err?.message || 'Não foi possível salvar a despesa.';
       setFormError(msg);
       console.error(err);
     } finally {
@@ -282,7 +282,7 @@ export default function Expenses() {
         {filteredExpenses.length === 0 && (
           <div className="text-center py-12 text-muted-foreground bg-muted/20 rounded-2xl border border-dashed">
             <Receipt size={48} className="mx-auto mb-4 opacity-20" />
-            <p className="text-sm">Nenhum gasto registrado neste período.</p>
+            <p className="text-sm">Nenhuma despesa registrada neste período.</p>
           </div>
         )}
       </div>
@@ -356,15 +356,15 @@ export default function Expenses() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="wallet">Conta / Carteira</Label>
+              <Label htmlFor="wallet">Conta</Label>
               <Select 
                 value={newExpense.wallet_id} 
                 onValueChange={(val) => setNewExpense({...newExpense, wallet_id: val})}
                 required
               >
                 <SelectTrigger className="h-12">
-                  <SelectValue placeholder="Selecione de onde saiu o dinheiro">
-                     {selectedWalletMatch ? selectedWalletMatch.name : (newExpense.wallet_id ? 'Conta Deletada' : 'Selecione a conta/carteira')}
+                  <SelectValue placeholder="Selecione a conta">
+                     {selectedWalletMatch ? selectedWalletMatch.name : (newExpense.wallet_id ? 'Conta Deletada' : 'Selecione a conta')}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>

@@ -324,7 +324,7 @@ export default function Earnings() {
         {filteredEarnings.length === 0 && (
           <div className="text-center py-12 text-muted-foreground bg-muted/20 rounded-2xl border border-dashed">
             <DollarSign size={48} className="mx-auto mb-4 opacity-20" />
-            <p className="text-sm">Nenhum ganho registrado neste período.</p>
+            <p className="text-sm">Nenhuma receita registrada neste período.</p>
           </div>
         )}
       </div>
@@ -342,7 +342,7 @@ export default function Earnings() {
         </DialogTrigger>
         <DialogContent className="sm:max-w-md w-[calc(100%-32px)] mx-auto rounded-2xl p-6 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingEarning ? 'Editar Ganho' : 'Adicionar Ganho'}</DialogTitle>
+            <DialogTitle>{editingEarning ? 'Editar Receita' : 'Adicionar Receita'}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSaveEarning} className="space-y-5 mt-4">
             <div className="space-y-2">
@@ -367,7 +367,7 @@ export default function Earnings() {
                 required
               >
                 <SelectTrigger className="h-12">
-                  <SelectValue placeholder="Selecione a plataforma">
+                  <SelectValue placeholder="Selecione a fonte de renda">
                     {selectedPlatformMatch ? selectedPlatformMatch.name : (newEarning.platform_id ? 'Fonte removida' : 'Selecione a fonte')}
                   </SelectValue>
                 </SelectTrigger>
@@ -445,9 +445,9 @@ export default function Earnings() {
 
             <div className="flex items-center justify-between pt-2">
               <div className="space-y-0.5">
-                <Label htmlFor="recurring" className="text-base">Ganho Fixo / Recorrente</Label>
-                <p className="text-xs text-muted-foreground">
-                  Marcando esta opção, este ganho se repetirá todo mês.
+                <Label htmlFor="recurring" className="text-base">Receita Fixa / Recorrente</Label>
+                <p className="text-sm text-muted-foreground">
+                  Marcando esta opção, esta receita se repetirá todo mês.
                 </p>
               </div>
               <Switch
@@ -463,7 +463,7 @@ export default function Earnings() {
                   <Trash2 size={18} />
                 </Button>
               )}
-              <Button type="submit" className="flex-1 h-12 font-bold text-base">{editingEarning ? 'Salvar Edição' : 'Salvar Ganho'}</Button>
+              <Button type="submit" className="flex-1 h-12 font-bold text-base">{editingEarning ? 'Salvar Edição' : 'Salvar Receita'}</Button>
             </div>
           </form>
         </DialogContent>
