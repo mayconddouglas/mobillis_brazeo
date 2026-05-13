@@ -4,9 +4,12 @@ import { useAuth } from '../contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Route } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { BarChart3, Check, Route, Shield, Sparkles } from 'lucide-react';
 
 export default function Login() {
   const { user, isDemo } = useAuth();
@@ -15,6 +18,7 @@ export default function Login() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [signedUpEmail, setSignedUpEmail] = useState<string | null>(null);
 
   if (user) {
     return <Navigate to="/" replace />;
@@ -26,14 +30,20 @@ export default function Login() {
     setError(null);
     try {
       if (isDemo) {
-        alert("Modo Demo ativo: as credenciais do Supabase não foram configuradas. O app deverá ignorar o login automaticamente.");
+        setError("Modo Demo ativo: as credenciais do Supabase não foram configuradas.");
         return;
       }
 
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({ email, password });
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { emailRedirectTo: window.location.origin },
+        });
         if (error) throw error;
-        alert('Cadastro realizado! Verifique seu email se a confirmação estiver ativada, ou no caso do Supabase local já pode entrar.');
+        setSignedUpEmail(email);
+        setIsSignUp(false);
+        setPassword('');
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -46,69 +56,188 @@ export default function Login() {
   };
 
   return (
-    <div className="h-screen w-full flex items-center justify-center p-4 bg-background">
-      <Card className="w-full max-w-sm rounded-[24px] shadow-2xl border-none">
-        <CardHeader className="text-center space-y-2 pt-8">
-          <div className="w-16 h-16 bg-primary/10 rounded-2xl mx-auto flex items-center justify-center mb-4">
-            <Route className="text-primary w-8 h-8" />
-          </div>
-          <CardTitle className="text-2xl font-black tracking-tighter">RouteFinance</CardTitle>
-          <CardDescription className="text-sm">
-            {isSignUp ? 'Crie sua conta para começar' : 'Acesse seu dashboard financeiro'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="pb-8">
-          <form onSubmit={handleAuth} className="space-y-4">
-            {error && (
-              <div className="p-3 bg-destructive/15 text-destructive text-sm rounded-xl font-medium text-center">
-                {error}
-              </div>
-            )}
-            <div className="space-y-3">
-              <Input
-                type="email"
-                placeholder="Seu e-mail"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="h-12 rounded-xl"
-              />
-              <Input
-                type="password"
-                placeholder="Sua senha"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="h-12 rounded-xl"
-              />
+    <div className="min-h-svh bg-background">
+      <div className="pointer-events-none fixed inset-0 bg-gradient-to-br from-muted/60 via-background to-background" />
+      <div className="relative mx-auto grid min-h-svh w-full max-w-5xl items-center gap-10 px-4 py-12 lg:grid-cols-2">
+        <div className="hidden lg:block">
+          <div className="flex items-center gap-3">
+            <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <Route />
             </div>
-            
-            <Button className="w-full h-12 rounded-xl font-bold" type="submit" disabled={loading}>
-              {loading ? 'Carregando...' : isSignUp ? 'Criar Conta' : 'Entrar'}
-            </Button>
-            
-            <Button
-              type="button"
-              variant="link"
-              className="w-full text-muted-foreground"
-              onClick={() => setIsSignUp(!isSignUp)}
+            <div>
+              <div className="flex items-center gap-2">
+                <div className="text-lg font-semibold">RouteFinance</div>
+                <Badge variant="secondary">Beta</Badge>
+              </div>
+              <div className="text-sm text-muted-foreground">
+                Um painel simples e poderoso para a sua vida financeira.
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-10 flex flex-col gap-4">
+            <Feature
+              icon={<BarChart3 />}
+              title="Visão clara"
+              description="Acompanhe ganhos, gastos e metas com relatórios prontos para o dia a dia."
+            />
+            <Feature
+              icon={<Sparkles />}
+              title="Experiência premium"
+              description="Interface moderna, rápida e confortável no celular e no desktop."
+            />
+            <Feature
+              icon={<Shield />}
+              title="Seus dados, só seus"
+              description="Segurança com Supabase + Row Level Security para separar dados por usuário."
+            />
+          </div>
+        </div>
+
+        <Card className="mx-auto w-full max-w-sm">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <Route />
+                </div>
+                <div>
+                  <CardTitle>Bem-vindo</CardTitle>
+                  <CardDescription>Entre para continuar ou crie sua conta.</CardDescription>
+                </div>
+              </div>
+              <Badge variant="secondary" className="hidden sm:inline-flex">Seguro</Badge>
+            </div>
+          </CardHeader>
+
+          <CardContent className="flex flex-col gap-4">
+            {signedUpEmail && (
+              <Alert className="bg-card">
+                <Check />
+                <AlertTitle>Confirme seu e-mail</AlertTitle>
+                <AlertDescription>
+                  Enviamos um link de confirmação para <span className="font-medium">{signedUpEmail}</span>. Abra o e-mail para ativar sua conta.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {error && (
+              <Alert variant="destructive">
+                <AlertTitle>Não foi possível continuar</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            <Tabs
+              value={isSignUp ? 'signup' : 'login'}
+              onValueChange={(val) => {
+                setIsSignUp(val === 'signup');
+                setError(null);
+              }}
             >
-              {isSignUp ? 'Já tenho uma conta. Entrar' : 'Não tenho conta. Criar nova'}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-      {isDemo && (
-        <div className="fixed bottom-4 left-0 w-full px-4">
-          <div className="mx-auto w-full max-w-sm">
+              <TabsList className="w-full" variant="default">
+                <TabsTrigger value="login">Entrar</TabsTrigger>
+                <TabsTrigger value="signup">Criar conta</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="login">
+                <form onSubmit={handleAuth} className="flex flex-col gap-3">
+                  <Input
+                    type="email"
+                    placeholder="Seu e-mail"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    autoComplete="email"
+                    inputMode="email"
+                    className="h-12"
+                  />
+                  <Input
+                    type="password"
+                    placeholder="Sua senha"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    autoComplete="current-password"
+                    className="h-12"
+                  />
+
+                  <Button className="h-12 w-full" type="submit" disabled={loading || isDemo}>
+                    {loading ? 'Entrando...' : 'Entrar'}
+                  </Button>
+                </form>
+              </TabsContent>
+
+              <TabsContent value="signup">
+                <form onSubmit={handleAuth} className="flex flex-col gap-3">
+                  <Input
+                    type="email"
+                    placeholder="Seu e-mail"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    autoComplete="email"
+                    inputMode="email"
+                    className="h-12"
+                  />
+                  <Input
+                    type="password"
+                    placeholder="Crie uma senha"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    autoComplete="new-password"
+                    className="h-12"
+                  />
+
+                  <div className="text-xs text-muted-foreground">
+                    Ao criar a conta, você concorda em usar o RouteFinance de forma responsável.
+                  </div>
+
+                  <Button className="h-12 w-full" type="submit" disabled={loading || isDemo}>
+                    {loading ? 'Criando...' : 'Criar conta'}
+                  </Button>
+                </form>
+              </TabsContent>
+            </Tabs>
+
+            <Separator />
+
+            <div className="text-xs text-muted-foreground">
+              Dica: se não encontrar o e-mail, verifique Spam/Promoções.
+            </div>
+          </CardContent>
+
+          <CardFooter className="flex items-center justify-between">
+            <div className="text-xs text-muted-foreground">© {new Date().getFullYear()} RouteFinance</div>
+            <Badge variant="secondary" className="lg:hidden">Beta</Badge>
+          </CardFooter>
+        </Card>
+
+        {isDemo && (
+          <div className="lg:hidden">
             <Alert className="border-border bg-card/80 backdrop-blur">
               <AlertDescription>
                 Modo Demo Local: VITE_SUPABASE_URL não configurado.
               </AlertDescription>
             </Alert>
           </div>
-        </div>
-      )}
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Feature({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
+  return (
+    <div className="flex items-start gap-3 rounded-xl bg-card/60 p-4 ring-1 ring-foreground/10">
+      <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+        {icon}
+      </div>
+      <div className="flex flex-col gap-1">
+        <div className="text-sm font-semibold">{title}</div>
+        <div className="text-sm text-muted-foreground">{description}</div>
+      </div>
     </div>
   );
 }

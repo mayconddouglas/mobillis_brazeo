@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="x-apple-disable-message-reformatting" />
+    <title>Confirme seu e-mail</title>
+  </head>
+  <body style="margin:0;padding:0;background:#f6f7fb;">
+    <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
+      Falta só confirmar seu e-mail para liberar sua conta no RouteFinance.
+    </div>
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f6f7fb;padding:24px 12px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px;">
+            <tr>
+              <td style="padding:8px 0 16px 0;text-align:left;">
+                <div style="font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial;letter-spacing:-0.02em;font-size:14px;color:#64748b;">
+                  RouteFinance
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td style="background:#ffffff;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden;">
+                <div style="padding:28px 24px 20px 24px;">
+                  <div style="font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial;letter-spacing:-0.03em;font-size:22px;line-height:1.2;font-weight:800;color:#0f172a;">
+                    Confirme seu e-mail para ativar sua conta
+                  </div>
+                  <div style="height:12px;"></div>
+                  <div style="font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial;font-size:14px;line-height:1.6;color:#334155;">
+                    Olá! Você está a um clique de acessar seu painel financeiro no <strong>RouteFinance</strong>.
+                    Para garantir a segurança da sua conta, confirme seu endereço de e-mail.
+                  </div>
+                  <div style="height:18px;"></div>
+                  <table role="presentation" cellspacing="0" cellpadding="0">
+                    <tr>
+                      <td style="background:#2563eb;border-radius:12px;">
+                        <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:12px 16px;font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial;font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;">
+                          Confirmar e entrar
+                        </a>
+                      </td>
+                    </tr>
+                  </table>
+                  <div style="height:16px;"></div>
+                  <div style="font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial;font-size:12px;line-height:1.6;color:#64748b;">
+                    Se o botão não funcionar, copie e cole este link no navegador:
+                    <div style="word-break:break-all;color:#2563eb;text-decoration:none;margin-top:6px;">
+                      {{ .ConfirmationURL }}
+                    </div>
+                  </div>
+                </div>
+                <div style="padding:18px 24px;background:#f8fafc;border-top:1px solid #e5e7eb;">
+                  <div style="font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial;font-size:12px;line-height:1.6;color:#64748b;">
+                    <strong>Dica:</strong> se você não solicitou esse cadastro, pode ignorar este e-mail com segurança.
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:14px 6px 0 6px;text-align:center;">
+                <div style="font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial;font-size:12px;line-height:1.6;color:#94a3b8;">
+                  © RouteFinance • Este e-mail foi enviado para {{ .Email }}
+                </div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+
