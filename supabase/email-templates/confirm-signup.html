@@ -44,15 +44,17 @@
                   </table>
                   <div style="height:16px;"></div>
                   <div style="font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial;font-size:12px;line-height:1.6;color:#64748b;">
-                    Se o botão não funcionar, copie e cole este link no navegador:
-                    <div style="word-break:break-all;color:#2563eb;text-decoration:none;margin-top:6px;">
-                      {{ .ConfirmationURL }}
+                    Se o botão não funcionar, abra este link:
+                    <div style="margin-top:6px;">
+                      <a href="{{ .ConfirmationURL }}" style="font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial;font-size:12px;color:#2563eb;text-decoration:underline;word-break:break-word;">
+                        Confirmar e-mail
+                      </a>
                     </div>
                   </div>
                 </div>
                 <div style="padding:18px 24px;background:#f8fafc;border-top:1px solid #e5e7eb;">
                   <div style="font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial;font-size:12px;line-height:1.6;color:#64748b;">
-                    <strong>Dica:</strong> se você não solicitou esse cadastro, pode ignorar este e-mail com segurança.
+                    <strong>Segurança:</strong> este link é de uso único e expira. Se você não solicitou esse cadastro, ignore este e-mail.
                   </div>
                 </div>
               </td>
@@ -60,7 +62,7 @@
             <tr>
               <td style="padding:14px 6px 0 6px;text-align:center;">
                 <div style="font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial;font-size:12px;line-height:1.6;color:#94a3b8;">
-                  © RouteFinance • Este e-mail foi enviado para {{ .Email }}
+                  © RouteFinance • Não responda este e-mail
                 </div>
               </td>
             </tr>
@@ -70,4 +72,3 @@
     </table>
   </body>
 </html>
-

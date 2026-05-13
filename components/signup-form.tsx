@@ -17,6 +17,8 @@ export function SignupForm({
   ...props
 }: React.ComponentProps<typeof Card>) {
   const { isDemo } = useAuth()
+  const redirectTo =
+    import.meta.env.VITE_SITE_URL?.toString() || window.location.origin
   const [name, setName] = React.useState("")
   const [email, setEmail] = React.useState("")
   const [password, setPassword] = React.useState("")
@@ -45,7 +47,7 @@ export function SignupForm({
         password,
         options: {
           data: { name: trimmedName },
-          emailRedirectTo: window.location.origin,
+          emailRedirectTo: redirectTo,
         },
       })
 
@@ -140,4 +142,3 @@ export function SignupForm({
     </Card>
   )
 }
-
