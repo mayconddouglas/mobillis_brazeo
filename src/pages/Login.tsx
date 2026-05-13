@@ -5,6 +5,7 @@ import { Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Route } from 'lucide-react';
 
 export default function Login() {
@@ -98,9 +99,15 @@ export default function Login() {
         </CardContent>
       </Card>
       {isDemo && (
-         <div className="fixed bottom-4 left-0 w-full text-center text-xs text-muted-foreground px-8">
-            <p className="bg-yellow-500/10 text-yellow-600 p-2 rounded-lg font-medium">Modo Demo Local. VITE_SUPABASE_URL não configurado.</p>
-         </div>
+        <div className="fixed bottom-4 left-0 w-full px-4">
+          <div className="mx-auto w-full max-w-sm">
+            <Alert className="border-border bg-card/80 backdrop-blur">
+              <AlertDescription>
+                Modo Demo Local: VITE_SUPABASE_URL não configurado.
+              </AlertDescription>
+            </Alert>
+          </div>
+        </div>
       )}
     </div>
   );
