@@ -287,18 +287,12 @@ export default function Expenses() {
         )}
       </div>
 
+      <Button onClick={handleOpenAdd} className="fixed bottom-20 right-4 w-14 h-14 rounded-full shadow-xl bg-red-500 hover:bg-red-600 text-white flex items-center justify-center z-40 transition-transform active:scale-95">
+        <Plus size={24} />
+      </Button>
+
       {/* Modal / Form */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogTrigger
-          render={
-            <Button
-              onClick={handleOpenAdd}
-              className="fixed bottom-20 right-4 w-14 h-14 rounded-full shadow-xl bg-red-500 hover:bg-red-600 text-white flex items-center justify-center z-40 transition-transform active:scale-95"
-            />
-          }
-        >
-          <Plus size={24} />
-        </DialogTrigger>
         <DialogContent className="sm:max-w-md w-[calc(100%-32px)] mx-auto rounded-2xl p-6 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingExpense ? 'Editar Despesa' : 'Adicionar Despesa'}</DialogTitle>
@@ -403,11 +397,11 @@ export default function Expenses() {
 
             <div className="flex gap-2 pt-4 border-t mt-2">
               {editingExpense && (
-                <Button type="button" variant="outline" onClick={() => handleDelete(editingExpense.id)} className="h-12 px-4 text-red-500 hover:text-red-600 hover:bg-red-50 border-red-100">
+                <Button disabled={saving} type="button" variant="outline" onClick={() => handleDelete(editingExpense.id)} className="h-12 px-4 text-red-500 hover:text-red-600 hover:bg-red-50 border-red-100">
                   <Trash2 size={18} />
                 </Button>
               )}
-              <Button type="submit" className="flex-1 h-12 font-bold text-base bg-red-500 hover:bg-red-600">
+              <Button disabled={saving} type="submit" className="flex-1 h-12 font-bold text-base bg-red-500 hover:bg-red-600">
                 {saving ? 'Salvando...' : (editingExpense ? 'Salvar Edição' : 'Salvar Despesa')}
               </Button>
             </div>

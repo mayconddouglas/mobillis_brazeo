@@ -278,18 +278,15 @@ function PlatformsSheet() {
         <SheetHeader className="mb-6 text-left shrink-0 border-b pb-4">
           <div className="flex items-center justify-between">
             <SheetTitle>Fontes de Renda</SheetTitle>
+            <Button
+              size="icon"
+              variant="outline"
+              className="w-8 h-8 rounded-full"
+              onClick={() => setIsAddOpen(true)}
+            >
+              <Plus size={16} />
+            </Button>
             <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-              <DialogTrigger
-                render={
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    className="w-8 h-8 rounded-full"
-                  />
-                }
-              >
-                <Plus size={16} />
-              </DialogTrigger>
               <DialogContent className="sm:max-w-md w-[calc(100%-32px)] mx-auto rounded-2xl p-6">
                 <DialogHeader>
                   <DialogTitle>Nova Fonte</DialogTitle>
@@ -385,18 +382,15 @@ function ExpenseCategoriesSheet() {
         <SheetHeader className="mb-6 text-left shrink-0 border-b pb-4">
           <div className="flex items-center justify-between">
             <SheetTitle>Categorias</SheetTitle>
+            <Button
+              size="icon"
+              variant="outline"
+              className="w-8 h-8 rounded-full"
+              onClick={() => setIsAddOpen(true)}
+            >
+              <Plus size={16} />
+            </Button>
             <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-              <DialogTrigger
-                render={
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    className="w-8 h-8 rounded-full"
-                  />
-                }
-              >
-                <Plus size={16} />
-              </DialogTrigger>
               <DialogContent className="sm:max-w-md w-[calc(100%-32px)] mx-auto rounded-2xl p-6">
                 <DialogHeader>
                   <DialogTitle>Nova Categoria</DialogTitle>

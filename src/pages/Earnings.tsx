@@ -46,6 +46,8 @@ export default function Earnings() {
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEarning, setEditingEarning] = useState<Earning | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
   
   const [newEarning, setNewEarning] = useState({
     amount: '',
@@ -60,6 +62,7 @@ export default function Earnings() {
 
   const handleOpenEdit = (earning: Earning) => {
     setEditingEarning(earning);
+    setFormError(null);
     setNewEarning({
       amount: earning.amount.toString(),
       platform_id: earning.platform_id,
@@ -75,6 +78,7 @@ export default function Earnings() {
 
   const handleOpenAdd = () => {
     setEditingEarning(null);
+    setFormError(null);
     setNewEarning({
       amount: '',
       platform_id: platformFilter !== 'all' ? platformFilter : '',
@@ -90,10 +94,25 @@ export default function Earnings() {
 
   const handleSaveEarning = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newEarning.amount || !newEarning.platform_id || !newEarning.date) return;
+    setFormError(null);
+
+    if (!newEarning.amount || !newEarning.date) {
+      setFormError('Preencha valor e data.');
+      return;
+    }
+    if (!newEarning.platform_id) {
+      setFormError('Selecione uma fonte de renda.');
+      return;
+    }
+
+    const newAmount = parseFloat(newEarning.amount.toString().replace(',', '.'));
+    if (Number.isNaN(newAmount) || newAmount <= 0) {
+      setFormError('Informe um valor válido.');
+      return;
+    }
 
     const dataPayload = {
-      amount: parseFloat(newEarning.amount.toString().replace(',', '.')),
+      amount: newAmount,
       platform_id: newEarning.platform_id,
       date: newEarning.date,
       note: newEarning.note || null,
@@ -103,13 +122,20 @@ export default function Earnings() {
       is_recurring: newEarning.is_recurring,
     };
 
-    if (editingEarning) {
-      await updateEarning({ id: editingEarning.id, ...dataPayload });
-    } else {
-      await addEarning(dataPayload);
+    setSaving(true);
+    try {
+      if (editingEarning) {
+        await updateEarning({ id: editingEarning.id, ...dataPayload });
+      } else {
+        await addEarning(dataPayload);
+      }
+      setIsModalOpen(false);
+    } catch (err: any) {
+      console.error(err);
+      setFormError(err.message || 'Erro ao salvar a receita. Verifique se você tem permissão.');
+    } finally {
+      setSaving(false);
     }
-    
-    setIsModalOpen(false);
   };
 
   const handleDelete = async (id: string) => {
@@ -329,22 +355,21 @@ export default function Earnings() {
         )}
       </div>
 
+      <Button onClick={handleOpenAdd} className="fixed bottom-20 right-4 w-14 h-14 rounded-full shadow-xl bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center z-40 transition-transform active:scale-95">
+        <Plus size={24} />
+      </Button>
+
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogTrigger
-          render={
-            <Button
-              onClick={handleOpenAdd}
-              className="fixed bottom-20 right-4 w-14 h-14 rounded-full shadow-xl bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center z-40 transition-transform active:scale-95"
-            />
-          }
-        >
-          <Plus size={24} />
-        </DialogTrigger>
         <DialogContent className="sm:max-w-md w-[calc(100%-32px)] mx-auto rounded-2xl p-6 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingEarning ? 'Editar Receita' : 'Adicionar Receita'}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSaveEarning} className="space-y-5 mt-4">
+            {formError && (
+              <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                {formError}
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="amount">Valor Recebido (R$)</Label>
               <Input 
@@ -459,11 +484,13 @@ export default function Earnings() {
 
             <div className="flex gap-2 pt-4 border-t">
               {editingEarning && (
-                <Button type="button" variant="outline" onClick={() => handleDelete(editingEarning.id)} className="h-12 px-4 text-red-500 hover:text-red-600 hover:bg-red-50 border-red-100">
+                <Button disabled={saving} type="button" variant="outline" onClick={() => handleDelete(editingEarning.id)} className="h-12 px-4 text-red-500 hover:text-red-600 hover:bg-red-50 border-red-100">
                   <Trash2 size={18} />
                 </Button>
               )}
-              <Button type="submit" className="flex-1 h-12 font-bold text-base">{editingEarning ? 'Salvar Edição' : 'Salvar Receita'}</Button>
+              <Button disabled={saving} type="submit" className="flex-1 h-12 font-bold text-base">
+                {saving ? 'Salvando...' : (editingEarning ? 'Salvar Edição' : 'Salvar Receita')}
+              </Button>
             </div>
           </form>
         </DialogContent>
