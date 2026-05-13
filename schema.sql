@@ -134,3 +134,45 @@ ALTER TABLE public.expenses ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Usuários podem gerenciar seus gastos" 
 ON public.expenses FOR ALL USING (auth.uid() = user_id);
+
+-- ========================================================
+-- 8. TRIGGER PARA DADOS PADRÃO DE NOVOS USUÁRIOS
+-- ========================================================
+-- Esta função é executada automaticamente quando um usuário cria uma conta,
+-- populando as categorias, fontes de renda e a primeira conta bancária.
+CREATE OR REPLACE FUNCTION public.handle_new_user() 
+RETURNS TRIGGER AS $$
+BEGIN
+  -- 1. Criar perfil do usuário (usando o nome do metadata)
+  INSERT INTO public.profiles (id, name)
+  VALUES (new.id, new.raw_user_meta_data->>'name');
+
+  -- 2. Criar categorias de despesas padrão (Alimentação, Transporte, Moradia, Saúde, Lazer)
+  INSERT INTO public.expense_categories (user_id, name, color, icon) VALUES
+  (new.id, 'Alimentação', '#ef4444', 'utensils'),
+  (new.id, 'Transporte', '#3b82f6', 'car'),
+  (new.id, 'Moradia', '#8b5cf6', 'home'),
+  (new.id, 'Saúde', '#10b981', 'activity'),
+  (new.id, 'Lazer', '#f59e0b', 'coffee');
+
+  -- 3. Criar fontes de renda padrão (Salário, Freelance, Investimentos)
+  INSERT INTO public.platforms (user_id, name, color, icon) VALUES
+  (new.id, 'Salário', '#22c55e', 'briefcase'),
+  (new.id, 'Freelance', '#6366f1', 'laptop'),
+  (new.id, 'Investimentos', '#eab308', 'trending-up');
+
+  -- 4. Criar primeira conta bancária (Conta Corrente)
+  INSERT INTO public.wallets (user_id, name, balance, color, icon) VALUES
+  (new.id, 'Conta Corrente', 0, '#3b82f6', 'landmark');
+
+  RETURN new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Deletar o trigger se já existir para poder recriar
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+
+-- Criar o trigger amarrado à tabela auth.users
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();

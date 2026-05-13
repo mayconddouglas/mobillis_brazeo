@@ -12,9 +12,9 @@ export interface Platform {
 }
 
 const mockPlatforms: Platform[] = [
-  { id: '1', user_id: 'demo', name: 'Uber Moto', color: '#000000', icon: 'bike', is_active: true },
-  { id: '2', user_id: 'demo', name: '99', color: '#FFD700', icon: 'car', is_active: true },
-  { id: '3', user_id: 'demo', name: 'iFood', color: '#EA1D2C', icon: 'shopping-bag', is_active: true },
+  { id: '1', user_id: 'demo', name: 'Salário', color: '#22C55E', icon: 'briefcase', is_active: true },
+  { id: '2', user_id: 'demo', name: 'Freelance', color: '#6366F1', icon: 'laptop', is_active: true },
+  { id: '3', user_id: 'demo', name: 'Investimentos', color: '#EAB308', icon: 'trending-up', is_active: true },
 ];
 
 export function usePlatforms() {

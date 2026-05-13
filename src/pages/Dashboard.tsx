@@ -118,8 +118,8 @@ export default function Dashboard() {
               <TrendingUp size={20} />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground font-medium">Melhor Dia</p>
-              <p className="font-bold text-sm">Sexta</p>
+              <p className="text-xs text-muted-foreground font-medium">Fontes de Renda</p>
+              <p className="font-bold text-sm">{platforms?.length || 0}</p>
             </div>
           </CardContent>
         </Card>

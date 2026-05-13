@@ -12,8 +12,8 @@ export interface Wallet {
 }
 
 const mockWallets: Wallet[] = [
-  { id: '1', user_id: 'demo', name: 'Dinheiro', balance: 150.00, color: '#10B981', icon: 'banknote' },
-  { id: '2', user_id: 'demo', name: 'Nubank', balance: 850.50, color: '#8B5CF6', icon: 'credit-card' },
+  { id: '1', user_id: 'demo', name: 'Conta Corrente', balance: 1500.00, color: '#3B82F6', icon: 'landmark' },
+  { id: '2', user_id: 'demo', name: 'Carteira (Dinheiro)', balance: 150.00, color: '#10B981', icon: 'banknote' },
 ];
 
 export function useWallets() {

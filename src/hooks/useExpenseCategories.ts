@@ -12,8 +12,10 @@ export interface ExpenseCategory {
 }
 
 const mockCategories: ExpenseCategory[] = [
-  { id: '1', user_id: 'demo', name: 'Combustível', color: '#EF4444', icon: 'tag', created_at: new Date().toISOString() },
-  { id: '2', user_id: 'demo', name: 'Alimentação', color: '#F97316', icon: 'tag', created_at: new Date().toISOString() },
+  { id: '1', user_id: 'demo', name: 'Alimentação', color: '#EF4444', icon: 'utensils', created_at: new Date().toISOString() },
+  { id: '2', user_id: 'demo', name: 'Transporte', color: '#3B82F6', icon: 'car', created_at: new Date().toISOString() },
+  { id: '3', user_id: 'demo', name: 'Moradia', color: '#8B5CF6', icon: 'home', created_at: new Date().toISOString() },
+  { id: '4', user_id: 'demo', name: 'Lazer', color: '#F59E0B', icon: 'coffee', created_at: new Date().toISOString() },
 ];
 
 export function useExpenseCategories() {
