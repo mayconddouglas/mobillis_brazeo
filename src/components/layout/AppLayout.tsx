@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, DollarSign, Receipt, Wallet, Settings } from 'lucide-react';
+import { Home, Receipt, Settings, TrendingUp, Wallet } from 'lucide-react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import {
   Sidebar,
@@ -33,7 +33,7 @@ export default function AppLayout() {
       <Sidebar variant="inset" collapsible="icon">
         <SidebarContent>
           <SidebarGroup>
-            <SidebarGroupLabel>RouteFinance</SidebarGroupLabel>
+            <SidebarGroupLabel>Brazeo Finanças</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
@@ -47,35 +47,35 @@ export default function AppLayout() {
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton
-                    render={<NavLink to="/earnings" />}
-                    isActive={pathname === '/earnings'}
+                    render={<NavLink to="/receitas" />}
+                    isActive={pathname === '/receitas'}
                   >
-                    <DollarSign data-icon="inline-start" />
-                    Ganhos
+                    <TrendingUp data-icon="inline-start" />
+                    Receitas
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton
-                    render={<NavLink to="/expenses" />}
-                    isActive={pathname === '/expenses'}
+                    render={<NavLink to="/despesas" />}
+                    isActive={pathname === '/despesas'}
                   >
                     <Receipt data-icon="inline-start" />
-                    Gastos
+                    Despesas
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton
-                    render={<NavLink to="/wallets" />}
-                    isActive={pathname === '/wallets'}
+                    render={<NavLink to="/contas" />}
+                    isActive={pathname === '/contas'}
                   >
                     <Wallet data-icon="inline-start" />
-                    Carteiras
+                    Contas
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton
-                    render={<NavLink to="/settings" />}
-                    isActive={pathname === '/settings'}
+                    render={<NavLink to="/configuracoes" />}
+                    isActive={pathname === '/configuracoes'}
                   >
                     <Settings data-icon="inline-start" />
                     Configurações
@@ -95,7 +95,7 @@ export default function AppLayout() {
             <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbLink render={<NavLink to="/" />}>
-                  RouteFinance
+                  Brazeo Finanças
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
@@ -115,10 +115,10 @@ export default function AppLayout() {
 
         <nav className="fixed inset-x-0 bottom-0 z-50 flex items-center justify-between border-t bg-card/80 px-6 py-3 backdrop-blur md:hidden">
           <NavItem to="/" icon={<Home />} label="Início" />
-          <NavItem to="/earnings" icon={<DollarSign />} label="Ganhos" />
-          <NavItem to="/expenses" icon={<Receipt />} label="Gastos" />
-          <NavItem to="/wallets" icon={<Wallet />} label="Carteiras" />
-          <NavItem to="/settings" icon={<Settings />} label="Config" />
+          <NavItem to="/receitas" icon={<TrendingUp />} label="Receitas" />
+          <NavItem to="/despesas" icon={<Receipt />} label="Despesas" />
+          <NavItem to="/contas" icon={<Wallet />} label="Contas" />
+          <NavItem to="/configuracoes" icon={<Settings />} label="Config" />
         </nav>
       </SidebarInset>
     </SidebarProvider>
@@ -145,9 +145,9 @@ function NavItem({ to, icon, label }: { to: string; icon: React.ReactNode; label
 
 function getCurrentPage(pathname: string) {
   if (pathname === '/') return 'Dashboard';
-  if (pathname === '/earnings') return 'Ganhos';
-  if (pathname === '/expenses') return 'Gastos';
-  if (pathname === '/wallets') return 'Carteiras';
-  if (pathname === '/settings') return 'Configurações';
-  return 'Página';
+  if (pathname === '/receitas' || pathname === '/earnings') return 'Receitas';
+  if (pathname === '/despesas' || pathname === '/expenses') return 'Despesas';
+  if (pathname === '/contas' || pathname === '/wallets') return 'Contas';
+  if (pathname === '/configuracoes' || pathname === '/settings') return 'Configurações';
+  return 'Brazeo Finanças';
 }

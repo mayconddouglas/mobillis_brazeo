@@ -24,8 +24,8 @@ export default function Dashboard() {
 
   const earningProgress = Math.min((totalEarnings / earningGoal) * 100, 100);
   const expenseProgress = Math.min((totalExpenses / expenseLimit) * 100, 100);
+  const totalEntries = (earnings?.length || 0) + (expenses?.length || 0);
 
-  // Mocks for charts
   const pieData = platforms?.map(p => ({
     name: p.name,
     value: earnings?.filter(e => e.platform_id === p.id).reduce((acc, curr) => acc + curr.amount, 0) || 0,
@@ -34,19 +34,16 @@ export default function Dashboard() {
 
   return (
     <div className="p-4 space-y-6 pb-24">
-      {/* Header */}
       <header className="flex justify-between items-center">
         <div>
-          <h1 className="text-xl font-bold tracking-tight">Bom dia, {user?.user_metadata?.name?.split(' ')[0] || 'Motorista'} 👋</h1>
+          <h1 className="text-xl font-bold tracking-tight">Olá, {user?.user_metadata?.name?.split(' ')[0] || 'pessoa'}.</h1>
           <p className="text-sm text-muted-foreground capitalize">{format(new Date(), "MMMM 'de' yyyy", { locale: ptBR })}</p>
         </div>
         <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-           {/* Add Theme toggle here later */}
            <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${user?.id}`} className="w-8 h-8 rounded-full" />
         </div>
       </header>
 
-      {/* Hero Card */}
       <Card className="bg-gradient-to-br from-primary to-blue-600 text-primary-foreground border-none shadow-lg">
         <CardContent className="p-6">
           <p className="text-primary-foreground/80 text-sm font-medium">Saldo Líquido</p>
@@ -57,7 +54,7 @@ export default function Dashboard() {
           <div className="mt-6 space-y-4">
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs text-primary-foreground/90 font-medium">
-                <span>Meta de Ganhos</span>
+                <span>Meta de Receitas</span>
                 <span>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalEarnings)} / {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(earningGoal)}</span>
               </div>
               <Progress value={earningProgress} className="h-2 bg-primary-foreground/20" indicatorClassName="bg-white" />
@@ -65,7 +62,7 @@ export default function Dashboard() {
             
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs text-primary-foreground/90 font-medium">
-                <span>Limite de Gastos</span>
+                <span>Limite de Despesas</span>
                 <span>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalExpenses)} / {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(expenseLimit)}</span>
               </div>
               <Progress value={expenseProgress} className="h-2 bg-primary-foreground/20" indicatorClassName={expenseProgress > 80 ? "bg-red-400" : "bg-white"} />
@@ -74,7 +71,6 @@ export default function Dashboard() {
         </CardContent>
       </Card>
 
-      {/* Grid Metrics */}
       <div className="grid grid-cols-2 gap-3">
         <Card className="shadow-sm">
           <CardContent className="p-4 flex items-center gap-3">
@@ -82,7 +78,7 @@ export default function Dashboard() {
               <DollarSign size={20} />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground font-medium">Ganhos</p>
+              <p className="text-xs text-muted-foreground font-medium">Receitas</p>
               <p className="font-bold text-sm font-mono text-green-600">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalEarnings)}</p>
             </div>
           </CardContent>
@@ -94,7 +90,7 @@ export default function Dashboard() {
               <Receipt size={20} />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground font-medium">Gastos</p>
+              <p className="text-xs text-muted-foreground font-medium">Despesas</p>
               <p className="font-bold text-sm font-mono text-red-600">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalExpenses)}</p>
             </div>
           </CardContent>
@@ -106,8 +102,8 @@ export default function Dashboard() {
               <Package size={20} />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground font-medium">Entregas</p>
-              <p className="font-bold text-sm font-mono">{ earnings?.length || 0 }</p>
+              <p className="text-xs text-muted-foreground font-medium">Lançamentos</p>
+              <p className="font-bold text-sm font-mono">{totalEntries}</p>
             </div>
           </CardContent>
         </Card>
@@ -118,15 +114,14 @@ export default function Dashboard() {
               <TrendingUp size={20} />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground font-medium">Melhor Dia</p>
-              <p className="font-bold text-sm">Sexta</p>
+              <p className="text-xs text-muted-foreground font-medium">Fontes de Renda</p>
+              <p className="font-bold text-sm">{platforms?.length || 0}</p>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Chart: Platforms */}
-      <h3 className="font-semibold text-sm tracking-tight mt-6">Ganhos por Plataforma</h3>
+      <h3 className="font-semibold text-sm tracking-tight mt-6">Receitas por Fonte de Renda</h3>
       <Card className="shadow-sm">
         <CardContent className="p-4">
           <div className="h-[200px] w-full">

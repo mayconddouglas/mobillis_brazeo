@@ -9,6 +9,7 @@ import Expenses from './pages/Expenses';
 import Wallets from './pages/Wallets';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
+import Signup from './pages/Signup';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -24,13 +25,19 @@ export default function App() {
     <AuthProvider>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
         
         <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
           <Route path="/" element={<Dashboard />} />
-          <Route path="/earnings" element={<Earnings />} />
-          <Route path="/expenses" element={<Expenses />} />
-          <Route path="/wallets" element={<Wallets />} />
-          <Route path="/settings" element={<Settings />} />
+          <Route path="/receitas" element={<Earnings />} />
+          <Route path="/despesas" element={<Expenses />} />
+          <Route path="/contas" element={<Wallets />} />
+          <Route path="/configuracoes" element={<Settings />} />
+
+          <Route path="/earnings" element={<Navigate to="/receitas" replace />} />
+          <Route path="/expenses" element={<Navigate to="/despesas" replace />} />
+          <Route path="/wallets" element={<Navigate to="/contas" replace />} />
+          <Route path="/settings" element={<Navigate to="/configuracoes" replace />} />
         </Route>
       </Routes>
     </AuthProvider>

@@ -231,7 +231,7 @@ export default function Earnings() {
       {/* Platform Breakdown */}
       {platformFilter === 'all' && platformBreakdown.length > 0 && (
         <div className="space-y-3">
-          <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Desempenho por Plataforma</h3>
+          <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Desempenho por Fonte de Renda</h3>
           <div className="grid grid-cols-2 gap-3">
             {platformBreakdown.map(b => {
               const platform = platforms?.find(p => p.id === b.id);
@@ -298,7 +298,7 @@ export default function Earnings() {
                               Ref: {format(parseDateLocal(earning.cycle_start), 'dd/MM')} a {format(parseDateLocal(earning.cycle_end), 'dd/MM')}
                             </p>
                           ) : (
-                            <p className="text-xs text-muted-foreground line-clamp-1">{earning.note || 'Ganho diário'}</p>
+                            <p className="text-xs text-muted-foreground line-clamp-1">{earning.note || 'Receita'}</p>
                           )}
                           {(earning.cycle_start && earning.cycle_end && earning.note) && (
                             <p className="text-[10px] text-muted-foreground mt-0.5 max-w-[200px] truncate">{earning.note}</p>
@@ -324,7 +324,7 @@ export default function Earnings() {
         {filteredEarnings.length === 0 && (
           <div className="text-center py-12 text-muted-foreground bg-muted/20 rounded-2xl border border-dashed">
             <DollarSign size={48} className="mx-auto mb-4 opacity-20" />
-            <p className="text-sm">Nenhum ganho registrado neste período.</p>
+            <p className="text-sm">Nenhuma receita registrada neste período.</p>
           </div>
         )}
       </div>
@@ -342,7 +342,7 @@ export default function Earnings() {
         </DialogTrigger>
         <DialogContent className="sm:max-w-md w-[calc(100%-32px)] mx-auto rounded-2xl p-6 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingEarning ? 'Editar Ganho' : 'Adicionar Ganho'}</DialogTitle>
+            <DialogTitle>{editingEarning ? 'Editar Receita' : 'Adicionar Receita'}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSaveEarning} className="space-y-5 mt-4">
             <div className="space-y-2">
@@ -360,15 +360,15 @@ export default function Earnings() {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="platform">Plataforma</Label>
+              <Label htmlFor="platform">Fonte de Renda</Label>
               <Select 
                 value={newEarning.platform_id} 
                 onValueChange={(val) => setNewEarning({...newEarning, platform_id: val})}
                 required
               >
                 <SelectTrigger className="h-12">
-                  <SelectValue placeholder="Selecione a plataforma">
-                    {selectedPlatformMatch ? selectedPlatformMatch.name : (newEarning.platform_id ? 'Plataforma Deletada' : 'Selecione a plataforma')}
+                  <SelectValue placeholder="Selecione a fonte de renda">
+                    {selectedPlatformMatch ? selectedPlatformMatch.name : (newEarning.platform_id ? 'Fonte removida' : 'Selecione a fonte')}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
@@ -430,7 +430,7 @@ export default function Earnings() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="expense_target">Meta de Gasto (Opcional)</Label>
+              <Label htmlFor="expense_target">Meta de Despesa (Opcional)</Label>
               <Input 
                 id="expense_target" 
                 type="number" 
@@ -440,14 +440,14 @@ export default function Earnings() {
                 onChange={(e) => setNewEarning({...newEarning, expense_target: e.target.value})}
                 className="h-12"
               />
-              <p className="text-[10px] text-muted-foreground leading-tight">Valor destinado para gastos do dia (ex: almoço, combustível)</p>
+              <p className="text-[10px] text-muted-foreground leading-tight">Valor destinado para despesas do dia (ex: almoço, transporte)</p>
             </div>
 
             <div className="flex items-center justify-between pt-2">
               <div className="space-y-0.5">
-                <Label htmlFor="recurring" className="text-base">Ganho Fixo / Recorrente</Label>
+                <Label htmlFor="recurring" className="text-base">Receita Fixa / Recorrente</Label>
                 <p className="text-xs text-muted-foreground">
-                  Marcando esta opção, este ganho se repetirá todo mês.
+                  Marcando esta opção, esta receita se repetirá todo mês.
                 </p>
               </div>
               <Switch
@@ -463,7 +463,7 @@ export default function Earnings() {
                   <Trash2 size={18} />
                 </Button>
               )}
-              <Button type="submit" className="flex-1 h-12 font-bold text-base">{editingEarning ? 'Salvar Edição' : 'Salvar Ganho'}</Button>
+              <Button type="submit" className="flex-1 h-12 font-bold text-base">{editingEarning ? 'Salvar Edição' : 'Salvar Receita'}</Button>
             </div>
           </form>
         </DialogContent>
