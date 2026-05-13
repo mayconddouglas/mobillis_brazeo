@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, DollarSign, Receipt, Wallet, Settings } from 'lucide-react';
+import { Home, TrendingUp, Receipt, Wallet, Settings } from 'lucide-react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import {
   Sidebar,
@@ -47,38 +47,49 @@ export default function AppLayout() {
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton
-                    render={<NavLink to="/earnings" />}
-                    isActive={pathname === '/earnings'}
+                    asChild
+                    isActive={pathname === '/receitas'}
                   >
-                    <DollarSign data-icon="inline-start" />
-                    Receitas
+                    <NavLink to="/receitas">
+                      <TrendingUp className="size-4" />
+                      <span>Receitas</span>
+                    </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
+                
                 <SidebarMenuItem>
                   <SidebarMenuButton
-                    render={<NavLink to="/expenses" />}
-                    isActive={pathname === '/expenses'}
+                    asChild
+                    isActive={pathname === '/despesas'}
                   >
-                    <Receipt data-icon="inline-start" />
-                    Despesas
+                    <NavLink to="/despesas">
+                      <Receipt className="size-4" />
+                      <span>Despesas</span>
+                    </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
+
                 <SidebarMenuItem>
                   <SidebarMenuButton
-                    render={<NavLink to="/wallets" />}
-                    isActive={pathname === '/wallets'}
+                    asChild
+                    isActive={pathname === '/contas'}
                   >
-                    <Wallet data-icon="inline-start" />
-                    Contas
+                    <NavLink to="/contas">
+                      <Wallet className="size-4" />
+                      <span>Contas</span>
+                    </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
+
                 <SidebarMenuItem>
                   <SidebarMenuButton
-                    render={<NavLink to="/settings" />}
-                    isActive={pathname === '/settings'}
+                    asChild
+                    isActive={pathname === '/configuracoes'}
                   >
-                    <Settings data-icon="inline-start" />
-                    Configurações
+                    <NavLink to="/configuracoes">
+                      <Settings className="size-4" />
+                      <span>Configurações</span>
+                    </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>
@@ -115,10 +126,10 @@ export default function AppLayout() {
 
         <nav className="fixed inset-x-0 bottom-0 z-50 flex items-center justify-between border-t bg-card/80 px-6 py-3 backdrop-blur md:hidden">
           <NavItem to="/" icon={<Home />} label="Início" />
-          <NavItem to="/earnings" icon={<DollarSign />} label="Receitas" />
-          <NavItem to="/expenses" icon={<Receipt />} label="Despesas" />
-          <NavItem to="/wallets" icon={<Wallet />} label="Contas" />
-          <NavItem to="/settings" icon={<Settings />} label="Config" />
+          <NavItem to="/receitas" icon={<TrendingUp />} label="Receitas" />
+          <NavItem to="/despesas" icon={<Receipt />} label="Despesas" />
+          <NavItem to="/contas" icon={<Wallet />} label="Contas" />
+          <NavItem to="/configuracoes" icon={<Settings />} label="Config" />
         </nav>
       </SidebarInset>
     </SidebarProvider>
@@ -136,7 +147,7 @@ function NavItem({ to, icon, label }: { to: string; icon: React.ReactNode; label
       }
     >
       <div className="relative">
-        {icon}
+        {React.cloneElement(icon as React.ReactElement, { className: 'size-5' })}
       </div>
       <span className="text-[10px] font-medium">{label}</span>
     </NavLink>
@@ -145,9 +156,9 @@ function NavItem({ to, icon, label }: { to: string; icon: React.ReactNode; label
 
 function getCurrentPage(pathname: string) {
   if (pathname === '/') return 'Dashboard';
-  if (pathname === '/earnings') return 'Receitas';
-  if (pathname === '/expenses') return 'Despesas';
-  if (pathname === '/wallets') return 'Contas';
-  if (pathname === '/settings') return 'Configurações';
-  return 'Página';
+  if (pathname === '/receitas' || pathname === '/earnings') return 'Receitas';
+  if (pathname === '/despesas' || pathname === '/expenses') return 'Despesas';
+  if (pathname === '/contas' || pathname === '/wallets') return 'Contas';
+  if (pathname === '/configuracoes' || pathname === '/settings') return 'Configurações';
+  return 'Brazeo Finanças';
 }
