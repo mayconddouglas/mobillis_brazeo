@@ -1,8 +1,8 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { LoginForm } from '@/components/login-form';
+import { SignupForm } from '@/components/signup-form';
 
-export default function Login() {
+export default function Signup() {
   const { user } = useAuth();
 
   if (user) {
@@ -12,8 +12,9 @@ export default function Login() {
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
       <div className="w-full max-w-sm">
-        <LoginForm />
+        <SignupForm />
       </div>
     </div>
   );
 }
+
