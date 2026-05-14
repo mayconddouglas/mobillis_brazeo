@@ -61,7 +61,7 @@ export default function Dashboard() {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4, delay: 0.1 }}
       >
-        <Card className="bg-card border shadow-sm p-6 space-y-6">
+        <Card className="bg-card border border-border shadow-sm p-6 space-y-6">
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">Saldo Total</p>
             <div className="text-4xl font-extrabold font-mono text-foreground tracking-tighter">

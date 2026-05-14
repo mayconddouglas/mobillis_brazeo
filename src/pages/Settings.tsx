@@ -83,7 +83,7 @@ export default function Settings() {
 
       <div className="space-y-4">
         <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider px-2">Preferências</h3>
-        <div className="bg-card rounded-2xl border shadow-sm divide-y">
+        <div className="bg-card rounded-2xl border border-border shadow-sm divide-y">
           <div className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setIsDark(!isDark)}>
             <div className="flex items-center gap-3">
               <div className="text-muted-foreground">{isDark ? <Moon size={18} /> : <Sun size={18} />}</div>
@@ -99,7 +99,7 @@ export default function Settings() {
 
       <div className="space-y-4">
         <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider px-2">Conta & Configurações</h3>
-        <div className="bg-card rounded-2xl border shadow-sm divide-y">
+        <div className="bg-card rounded-2xl border border-border shadow-sm divide-y">
           <UserProfileSheet />
           <WalletsSheet />
           <IncomeCategoriesSheet />

@@ -109,7 +109,7 @@ export default function Expenses() {
   return (
     <div className="p-4 space-y-6 pb-24 relative min-h-screen">
       {/* Header filter */}
-      <div className="bg-card p-4 rounded-2xl border shadow-sm space-y-4 mb-6">
+      <div className="bg-card p-4 rounded-2xl border border-border shadow-sm space-y-4 mb-6">
         {/* Date Filter */}
         <div className="flex gap-2 p-1 bg-muted/50 rounded-lg">
           {(['today', 'week', 'month'] as const).map((t) => (
@@ -151,7 +151,7 @@ export default function Expenses() {
       </div>
 
       {/* Total card */}
-      <div className="bg-card border rounded-2xl p-6 text-center shadow-sm relative overflow-hidden">
+      <div className="bg-card border border-border rounded-2xl p-6 text-center shadow-sm relative overflow-hidden">
         <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2">
           Total {categoryFilter !== 'all' ? categories?.find(c => c.id === categoryFilter)?.name : 'Despesas'}
         </p>
