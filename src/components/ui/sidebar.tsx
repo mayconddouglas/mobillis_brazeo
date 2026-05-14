@@ -22,7 +22,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/ui/tooltip-component"
+} from "@/components/ui/tooltip-verified"
 import { SidebarIcon } from "@phosphor-icons/react"
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
