@@ -1,27 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '../lib/supabase';
-import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
 import { format, subDays } from 'date-fns';
-
-export interface Earning {
-  id: string;
-  user_id: string;
-  category_id: string;
-  wallet_id: string;
-  amount: number;
-  date: string;
-  description: string | null;
-  
-  is_recurring?: boolean;
-  recurring_frequency?: 'monthly' | 'yearly' | 'weekly' | 'custom';
-  
-  is_installment?: boolean;
-  installment_current?: number;
-  installment_total?: number;
-  group_id?: string;
-  
-  created_at: string;
-}
+import { Earning } from '@/types/earning';
 
 const mockEarnings: Earning[] = [
   { id: '1', user_id: 'demo-user-123', category_id: '1', wallet_id: '1', amount: 120.50, date: format(new Date(), 'yyyy-MM-dd'), description: 'Bonus fds', created_at: new Date().toISOString() },

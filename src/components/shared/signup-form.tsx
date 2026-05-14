@@ -3,8 +3,8 @@
 import * as React from "react"
 import { Link } from "react-router-dom"
 
-import { supabase } from "@/src/lib/supabase"
-import { useAuth } from "@/src/contexts/AuthContext"
+import { supabase } from "@/lib/supabase"
+import { useAuth } from "@/contexts/AuthContext"
 import { cn } from "@/lib/utils"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"

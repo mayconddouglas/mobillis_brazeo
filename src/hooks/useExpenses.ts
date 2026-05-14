@@ -1,26 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '../lib/supabase';
-import { useAuth } from '../contexts/AuthContext';
-
-export interface Expense {
-  id: string;
-  user_id: string;
-  category_id: string;
-  wallet_id: string;
-  amount: number;
-  description: string;
-  date: string;
-  
-  is_recurring?: boolean;
-  recurring_frequency?: 'monthly' | 'yearly' | 'weekly' | 'custom';
-  
-  is_installment?: boolean;
-  installment_current?: number;
-  installment_total?: number;
-  group_id?: string;
-  
-  created_at: string;
-}
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
+import { Expense } from '@/types/expense';
 
 const mockExpenses: Expense[] = [
   { id: '1', user_id: 'demo', category_id: '1', wallet_id: '1', amount: 45.0, description: 'Gasolina', date: new Date().toISOString().slice(0, 10), created_at: new Date().toISOString() },

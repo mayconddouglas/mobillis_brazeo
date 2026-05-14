@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
 import { isThisMonth, parseISO } from 'date-fns';
 import { PieChart as PieChartIcon } from 'lucide-react';
-import { EmptyState } from '../ui/EmptyState';
+import { EmptyState } from '@/components/shared/EmptyState';
 
 export function InsightsSection() {
   const { data: earnings } = useEarnings();

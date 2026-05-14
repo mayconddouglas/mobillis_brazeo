@@ -1,6 +1,6 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { SignupForm } from '@/components/signup-form';
+import { SignupForm } from '@/components/shared/signup-form';
 
 export default function Signup() {
   const { user } = useAuth();

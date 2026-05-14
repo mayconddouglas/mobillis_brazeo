@@ -1,12 +1,13 @@
 import React, { useState, useMemo } from 'react';
-import { useEarnings, useIncomeCategories, useWallets, useGoals, Earning } from '../hooks';
+import { useEarnings, useIncomeCategories, useWallets, useGoals } from '../hooks';
+import { Earning } from '@/types/earning';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
   Plus, Bike, Car, Calendar as CalendarIcon, Trash2, Edit2, DollarSign,
   Truck, Package, ShoppingBag, Target, Filter, ChevronRight, Briefcase, Landmark
 } from 'lucide-react';
-import { EmptyState } from '../components/ui/EmptyState';
+import { EmptyState } from '@/components/shared/EmptyState';
 import { format, isToday, isThisWeek, isThisMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { BarChart, Bar, ResponsiveContainer, Tooltip } from 'recharts';

@@ -1,15 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '../lib/supabase';
-import { useAuth } from '../contexts/AuthContext';
-
-export interface MonthlyGoal {
-  id: string;
-  user_id: string;
-  month: number;
-  year: number;
-  earning_goal: number;
-  expense_limit: number;
-}
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
+import { MonthlyGoal } from '@/types/goal';
 
 export function useGoals(month: number, year: number) {
   const { user, isDemo } = useAuth();

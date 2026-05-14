@@ -1,9 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import { useExpenses, useExpenseCategories, useWallets, Expense } from '../hooks';
+import { useExpenses, useExpenseCategories, useWallets } from '../hooks';
+import { Expense } from '@/types/expense';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, Receipt, Calendar as CalendarIcon, Tag, CreditCard, Edit2, Trash2, ChevronRight, Filter } from 'lucide-react';
-import { EmptyState } from '../components/ui/EmptyState';
+import { EmptyState } from '@/components/shared/EmptyState';
 import { format, isToday, isThisWeek, isThisMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
