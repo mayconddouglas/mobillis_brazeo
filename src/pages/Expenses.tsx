@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useExpenses, useExpenseCategories, useWallets } from '../hooks';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button.tsx';
+import { Button } from '@/components/ui/button';
 import { Plus, Receipt, Calendar as CalendarIcon, Tag, CreditCard, Edit2, Trash2, ChevronRight, Filter } from 'lucide-react';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { format, isToday, isThisWeek, isThisMonth } from 'date-fns';
