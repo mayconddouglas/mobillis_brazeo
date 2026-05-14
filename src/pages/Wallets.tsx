@@ -180,7 +180,7 @@ export default function Wallets() {
         {wallets?.map(wallet => (
           <Card 
             key={wallet.id} 
-            className="min-w-[280px] snap-center shrink-0 border-none relative overflow-hidden cursor-pointer hover:opacity-90 transition-opacity group" 
+            className="min-w-[280px] snap-center shrink-0 relative overflow-hidden cursor-pointer hover:opacity-90 transition-opacity group" 
             style={{ backgroundColor: wallet.color, color: '#fff' }}
             onClick={() => handleOpenEdit(wallet)}
           >
@@ -209,7 +209,7 @@ export default function Wallets() {
 
         <Card 
           onClick={handleOpenAdd}
-          className="min-w-[280px] snap-center shrink-0 border-dashed border-2 bg-transparent hover:bg-muted/50 cursor-pointer flex items-center justify-center min-h-[160px]"
+          className="min-w-[280px] snap-center shrink-0 bg-transparent hover:bg-muted/50 cursor-pointer flex items-center justify-center min-h-[160px]"
         >
           <div className="text-center text-muted-foreground flex flex-col items-center gap-2">
             <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
@@ -279,7 +279,7 @@ export default function Wallets() {
             })}
           </div>
         ) : (
-          <div className="text-center py-12 text-muted-foreground bg-muted/20 rounded-2xl border border-dashed">
+          <div className="text-center py-12 text-muted-foreground bg-muted/20 rounded-2xl border border-border">
             <WalletIcon size={48} className="mx-auto mb-4 opacity-20" />
             <p className="text-sm">Nenhuma movimentação registrada.</p>
           </div>

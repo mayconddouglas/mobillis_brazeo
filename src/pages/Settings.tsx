@@ -66,7 +66,7 @@ export default function Settings() {
     <div className="p-4 space-y-6 pb-24">
       <h1 className="text-xl font-bold tracking-tight mb-6">Configurações</h1>
 
-      <Card className="shadow-sm border-none bg-gradient-to-br from-primary/5 to-primary/10">
+      <Card className="shadow-sm bg-gradient-to-br from-primary/5 to-primary/10">
         <CardContent className="p-6 flex items-center gap-4">
           <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center shrink-0 border border-primary/20 overflow-hidden">
             <img src={profile?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${user?.id}`} className="w-16 h-16 object-cover" />
