@@ -116,26 +116,42 @@ export default function Settings() {
   );
 }
 
-function ActionRow({ icon, label, onClick }: { icon: React.ReactNode, label: string, onClick?: () => void }) {
-  return (
-    <div className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/50 transition-colors" onClick={onClick}>
-      <div className="flex items-center gap-3">
-        <div className="text-muted-foreground">{icon}</div>
-        <span className="font-medium text-sm">{label}</span>
+const ActionRow = React.forwardRef<HTMLDivElement, { icon: React.ReactNode, label: string, onClick?: () => void, className?: string; }>(
+  ({ icon, label, onClick, className, ...props }, ref) => {
+    return (
+      <div 
+        ref={ref}
+        role="button"
+        tabIndex={0}
+        className={`flex items-center justify-between p-4 cursor-pointer hover:bg-muted/50 transition-colors w-full ${className || ''}`}
+        onClick={onClick}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onClick?.();
+            // Also trigger synthetic click for standard trigger behavior if needed
+            (e.target as HTMLElement).click();
+          }
+        }}
+        {...props}
+      >
+        <div className="flex items-center gap-3">
+          <div className="text-muted-foreground">{icon}</div>
+          <span className="font-medium text-sm text-foreground">{label}</span>
+        </div>
+        <ChevronRight size={18} className="text-muted-foreground/50" />
       </div>
-      <ChevronRight size={18} className="text-muted-foreground/50" />
-    </div>
-  )
-}
+    )
+  }
+)
+ActionRow.displayName = 'ActionRow';
 
 function NotificationsSheet() {
   const [pushMsg, setPushMsg] = useState(() => localStorage.getItem('pref_msg') !== 'false');
 
   return (
     <Sheet>
-      <SheetTrigger render={<button type="button" className="w-full text-left" />}>
-        <ActionRow icon={<Bell size={18} />} label="Notificações" />
-      </SheetTrigger>
+      <SheetTrigger render={<ActionRow icon={<Bell size={18} />} label="Notificações" />} />
       <SheetContent side="bottom" className="h-[90vh] sm:h-auto rounded-t-3xl p-6">
         <SheetHeader className="mb-6 text-left">
           <SheetTitle>Notificações</SheetTitle>
@@ -188,9 +204,7 @@ function ExportSheet() {
 
   return (
     <Sheet>
-      <SheetTrigger render={<button type="button" className="w-full text-left" />}>
-        <ActionRow icon={<FileText size={18} />} label="Exportar Relatórios" />
-      </SheetTrigger>
+      <SheetTrigger render={<ActionRow icon={<FileText size={18} />} label="Exportar Relatórios" />} />
       <SheetContent side="bottom" className="h-[90vh] sm:h-auto rounded-t-3xl p-6">
         <SheetHeader className="mb-6 text-left">
           <SheetTitle>Exportar Relatórios</SheetTitle>
@@ -227,9 +241,7 @@ function ResetDataSheet() {
 
   return (
     <Sheet>
-      <SheetTrigger render={<button type="button" className="w-full text-left" />}>
-        <ActionRow icon={<Trash2 size={18} />} label="Zerar Dados Financeiros" />
-      </SheetTrigger>
+      <SheetTrigger render={<ActionRow icon={<Trash2 size={18} />} label="Zerar Dados Financeiros" />} />
       <SheetContent side="bottom" className="h-[90vh] sm:h-auto rounded-t-3xl p-6">
         <SheetHeader className="mb-6 text-left">
           <SheetTitle>Zerar Dados Financeiros</SheetTitle>
@@ -281,9 +293,7 @@ function PrivacySheet() {
 
   return (
     <Sheet>
-      <SheetTrigger render={<button type="button" className="w-full text-left" />}>
-        <ActionRow icon={<Shield size={18} />} label="Privacidade e Segurança" />
-      </SheetTrigger>
+      <SheetTrigger render={<ActionRow icon={<Shield size={18} />} label="Privacidade e Segurança" />} />
       <SheetContent side="bottom" className="h-[90vh] sm:h-auto rounded-t-3xl p-6">
         <SheetHeader className="mb-6 text-left">
           <SheetTitle>Privacidade e Segurança</SheetTitle>
@@ -354,9 +364,7 @@ function UserProfileSheet() {
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger render={<button type="button" className="w-full text-left" />}>
-        <ActionRow icon={<User size={18} />} label="Meus Dados" />
-      </SheetTrigger>
+      <SheetTrigger render={<ActionRow icon={<User size={18} />} label="Meus Dados" />} />
       <SheetContent side="bottom" className="h-[90vh] sm:h-auto rounded-t-3xl p-6">
         <SheetHeader className="mb-6 text-left">
           <SheetTitle>Meus Dados</SheetTitle>
@@ -401,9 +409,7 @@ function WalletsSheet() {
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger render={<button type="button" className="w-full text-left" />}>
-        <ActionRow icon={<Landmark size={18} />} label="Contas & Cartões" />
-      </SheetTrigger>
+      <SheetTrigger render={<ActionRow icon={<Landmark size={18} />} label="Contas & Cartões" />} />
       <SheetContent side="bottom" className="h-[90vh] sm:h-[80vh] rounded-t-3xl p-6 flex flex-col">
         <SheetHeader className="mb-6 text-left shrink-0 border-b pb-4">
           <div className="flex items-center justify-between">
@@ -510,9 +516,7 @@ function MonthlyGoalsSheet({ month, year }: { month: number; year: number }) {
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger render={<button type="button" className="w-full text-left" />}>
-        <ActionRow icon={<Target size={18} />} label="Metas Mensais" />
-      </SheetTrigger>
+      <SheetTrigger render={<ActionRow icon={<Target size={18} />} label="Metas Mensais" />} />
       <SheetContent side="bottom" className="h-[90vh] sm:h-auto rounded-t-3xl p-6">
         <SheetHeader className="mb-6 text-left">
           <SheetTitle>Metas deste Mês</SheetTitle>
@@ -568,9 +572,7 @@ function IncomeCategoriesSheet() {
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger render={<button type="button" className="w-full text-left" />}>
-        <ActionRow icon={<Briefcase size={18} />} label="Categorias de Receitas" />
-      </SheetTrigger>
+      <SheetTrigger render={<ActionRow icon={<Briefcase size={18} />} label="Categorias de Receitas" />} />
       <SheetContent side="bottom" className="h-[90vh] sm:h-[80vh] rounded-t-3xl p-6 flex flex-col">
         <SheetHeader className="mb-6 text-left shrink-0 border-b pb-4">
           <div className="flex items-center justify-between">
@@ -677,9 +679,7 @@ function ExpenseCategoriesSheet() {
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger render={<button type="button" className="w-full text-left" />}>
-        <ActionRow icon={<Tags size={18} />} label="Categorias de Despesas" />
-      </SheetTrigger>
+      <SheetTrigger render={<ActionRow icon={<Tags size={18} />} label="Categorias de Despesas" />} />
       <SheetContent side="bottom" className="h-[90vh] sm:h-[80vh] rounded-t-3xl p-6 flex flex-col">
         <SheetHeader className="mb-6 text-left shrink-0 border-b pb-4">
           <div className="flex items-center justify-between">
