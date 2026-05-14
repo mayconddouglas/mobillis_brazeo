@@ -116,23 +116,14 @@ export default function Settings() {
   );
 }
 
-const ActionRow = React.forwardRef<HTMLDivElement, { icon: React.ReactNode, label: string, onClick?: () => void, className?: string; }>(
+const ActionRow = React.forwardRef<HTMLButtonElement, { icon: React.ReactNode, label: string, onClick?: () => void, className?: string; }>(
   ({ icon, label, onClick, className, ...props }, ref) => {
     return (
-      <div 
+      <button 
         ref={ref}
-        role="button"
-        tabIndex={0}
-        className={`flex items-center justify-between p-4 cursor-pointer hover:bg-muted/50 transition-colors w-full ${className || ''}`}
+        type="button"
+        className={`flex items-center justify-between p-4 cursor-pointer hover:bg-muted/50 transition-colors w-full bg-transparent border-0 text-left ${className || ''}`}
         onClick={onClick}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            onClick?.();
-            // Also trigger synthetic click for standard trigger behavior if needed
-            (e.target as HTMLElement).click();
-          }
-        }}
         {...props}
       >
         <div className="flex items-center gap-3">
@@ -140,7 +131,7 @@ const ActionRow = React.forwardRef<HTMLDivElement, { icon: React.ReactNode, labe
           <span className="font-medium text-sm text-foreground">{label}</span>
         </div>
         <ChevronRight size={18} className="text-muted-foreground/50" />
-      </div>
+      </button>
     )
   }
 )
