@@ -260,7 +260,7 @@ export default function Earnings() {
         )}
       </div>
 
-      <Button onClick={handleOpenAdd} className="fixed bottom-20 right-4 w-14 h-14 rounded-full shadow-xl bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center z-40 transition-transform active:scale-95">
+      <Button onClick={handleOpenAdd} className="fixed bottom-20 right-4 w-14 h-14 rounded-full shadow-xl bg-emerald-500 hover:bg-emerald-600 text-white flex items-center justify-center z-[60] transition-transform active:scale-95">
         <Plus size={24} />
       </Button>
 
