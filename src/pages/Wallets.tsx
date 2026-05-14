@@ -21,7 +21,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-const parseDateLocal = (dateStr: string) => new Date(dateStr + 'T12:00:00');
+import { parseDateLocal } from '@/utils/date';
+import { formatBRL } from '@/utils/currency';
 
 export default function Wallets() {
   const { data: wallets, addWallet, updateWallet, deleteWallet } = useWallets();
@@ -199,7 +200,7 @@ export default function Wallets() {
               <div>
                 <p className="text-white/70 text-xs mb-1">Saldo Atual</p>
                 <p className="text-3xl font-mono font-bold tracking-tighter">
-                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(wallet.balance)}
+                  {formatBRL(wallet.balance)}
                 </p>
               </div>
             </CardContent>
@@ -268,7 +269,7 @@ export default function Wallets() {
                     <div className="flex items-center gap-3 shrink-0">
                       <div className="text-right">
                         <p className={`font-mono font-black text-sm ${isExpense ? 'text-red-500' : 'text-green-500'}`}>
-                          {isExpense ? '-' : '+'}{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(mov.amount)}
+                          {isExpense ? '-' : '+'}{formatBRL(mov.amount)}
                         </p>
                       </div>
                     </div>

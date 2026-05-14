@@ -206,15 +206,22 @@ function ExportSheet() {
 
 function ResetDataSheet() {
   const { user } = useAuth();
+  const [isResetting, setIsResetting] = useState(false);
   
   const handleReset = async () => {
-    if (!confirm("Tem certeza que deseja apagar TODOS os seus dados financeiros? Esta ação é irreversível.")) return;
+    if (!window.confirm("Atenção! Você perderá sua carteira, receitas, gastos e metas. Esta ação é irreversível. Deseja ZERAR sua conta?")) return;
     try {
-      await supabase.from('earnings').delete().eq('user_id', user?.id);
-      await supabase.from('expenses').delete().eq('user_id', user?.id);
-      alert("Dados zerados com sucesso!");
+      setIsResetting(true);
+      const { error } = await supabase.rpc('reset_financial_data');
+      if (error) throw error;
+      
+      alert("A conta foi zerada com sucesso!");
+      window.location.reload(); // Reload the application to reset state uniformly
     } catch (e) {
+      console.error(e);
       alert("Erro ao zerar dados.");
+    } finally {
+      setIsResetting(false);
     }
   };
 
@@ -225,11 +232,15 @@ function ResetDataSheet() {
       </SheetTrigger>
       <SheetContent side="bottom" className="h-[90vh] sm:h-auto rounded-t-3xl p-6">
         <SheetHeader className="mb-6 text-left">
-          <SheetTitle>Zerar Dados</SheetTitle>
+          <SheetTitle>Zerar Dados Financeiros</SheetTitle>
         </SheetHeader>
         <div className="space-y-4">
-          <p className="text-sm text-red-500 font-semibold">Esta ação apagará permanentemente todas as suas receitas e despesas registradas.</p>
-          <Button variant="destructive" className="w-full h-12" onClick={handleReset}>Zerar agora</Button>
+          <p className="text-sm text-red-500 font-semibold">
+            Isso vai remover tudo por completo: você perderá sua carteira, receitas, gastos e metas. A sua conta será literalmente zerada.
+          </p>
+          <Button variant="destructive" className="w-full h-12" onClick={handleReset} disabled={isResetting}>
+            {isResetting ? "Zerando..." : "ZERAR"}
+          </Button>
         </div>
       </SheetContent>
     </Sheet>
@@ -237,7 +248,8 @@ function ResetDataSheet() {
 }
 
 function PrivacySheet() {
-  const { user } = useAuth();
+  const { user, deleteAccount } = useAuth();
+  const [isDeleting, setIsDeleting] = useState(false);
   
   const handleExportJSON = () => {
     // In a real app, this would fetch all user data. 
@@ -254,8 +266,17 @@ function PrivacySheet() {
     link.click();
   };
 
-  const handleRequestDeletion = () => {
-    alert("Solicitação de exclusão de conta enviada ao suporte.");
+  const handleRequestDeletion = async () => {
+    if (window.confirm("Você tem certeza de que deseja excluir sua conta? Esta ação é irreversível e todos os seus dados serão apagados.")) {
+      try {
+        setIsDeleting(true);
+        await deleteAccount();
+      } catch (error) {
+        console.error(error);
+        alert("Ocorreu um erro ao excluir a conta. Tente novamente.");
+        setIsDeleting(false);
+      }
+    }
   };
 
   return (
@@ -277,8 +298,8 @@ function PrivacySheet() {
             <Button variant="outline" className="w-full h-12 justify-start gap-3" onClick={handleExportJSON}>
               <FileText size={18} /> Exportar dados como JSON
             </Button>
-            <Button variant="destructive" className="w-full h-12 justify-start gap-3" onClick={handleRequestDeletion}>
-              <Trash2 size={18} /> Solicitar exclusão da conta
+            <Button variant="destructive" className="w-full h-12 justify-start gap-3" onClick={handleRequestDeletion} disabled={isDeleting}>
+              <Trash2 size={18} /> {isDeleting ? "Excluindo..." : "Excluir minha conta"}
             </Button>
           </div>
         </div>

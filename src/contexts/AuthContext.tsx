@@ -7,6 +7,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signOut: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
   isDemo: boolean;
 }
 
@@ -15,6 +16,7 @@ const AuthContext = createContext<AuthContextType>({
   session: null,
   loading: true,
   signOut: async () => {},
+  deleteAccount: async () => {},
   isDemo: false,
 });
 
@@ -57,8 +59,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await supabase.auth.signOut();
   };
 
+  const deleteAccount = async () => {
+    if (isDemo) {
+      setUser(null);
+      return;
+    }
+    const { error } = await supabase.rpc('delete_user');
+    if (error) {
+      console.error('Error deleting user account:', error);
+      throw error;
+    }
+    await supabase.auth.signOut();
+  };
+
   return (
-    <AuthContext.Provider value={{ user, session, loading, signOut, isDemo }}>
+    <AuthContext.Provider value={{ user, session, loading, signOut, deleteAccount, isDemo }}>
       {children}
     </AuthContext.Provider>
   );

@@ -9,6 +9,7 @@ import { Progress } from '@/components/ui/progress';
 import { DollarSign, Receipt, TrendingUp, Package, Wallet } from 'lucide-react';
 import { PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { InsightsSection } from '../components/insights/InsightsSection';
+import { formatBRL } from '@/utils/currency';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -64,14 +65,14 @@ export default function Dashboard() {
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">Saldo Total</p>
             <div className="text-4xl font-extrabold font-mono text-foreground tracking-tighter">
-              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalBalance)}
+              {formatBRL(totalBalance)}
             </div>
           </div>
           
           <div className="space-y-4">
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs font-semibold text-muted-foreground">
-                <span>Meta: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalEarnings)} / {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(earningGoal)}</span>
+                <span>Meta: {formatBRL(totalEarnings)} / {formatBRL(earningGoal)}</span>
                 <span>{Math.round(earningProgress)}%</span>
               </div>
               <Progress value={earningProgress} className="h-2" />
@@ -79,7 +80,7 @@ export default function Dashboard() {
             
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs font-semibold text-muted-foreground">
-                <span>Limite: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalExpenses)} / {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(expenseLimit)}</span>
+                <span>Limite: {formatBRL(totalExpenses)} / {formatBRL(expenseLimit)}</span>
                 <span>{Math.round(expenseProgress)}%</span>
               </div>
               <Progress value={expenseProgress} className="h-2" indicatorClassName={expenseProgress > 80 ? "bg-red-500" : "bg-primary"} />
@@ -102,7 +103,7 @@ export default function Dashboard() {
              </div>
              <div>
                <p className="text-xs font-medium text-muted-foreground">Receitas</p>
-               <p className="font-bold font-mono text-emerald-600">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalEarnings)}</p>
+               <p className="font-bold font-mono text-emerald-600">{formatBRL(totalEarnings)}</p>
              </div>
            </CardContent>
          </Card>
@@ -114,7 +115,7 @@ export default function Dashboard() {
              </div>
              <div>
                <p className="text-xs font-medium text-muted-foreground">Despesas</p>
-               <p className="font-bold font-mono text-red-600">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalExpenses)}</p>
+               <p className="font-bold font-mono text-red-600">{formatBRL(totalExpenses)}</p>
              </div>
            </CardContent>
          </Card>
@@ -135,7 +136,7 @@ export default function Dashboard() {
                  </div>
                  <div className="truncate">
                    <p className="text-xs font-medium text-muted-foreground truncate">{wallet.name}</p>
-                   <p className="font-bold font-mono text-sm">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(wallet.balance)}</p>
+                   <p className="font-bold font-mono text-sm">{formatBRL(wallet.balance)}</p>
                  </div>
                </CardContent>
              </Card>
@@ -168,7 +169,7 @@ export default function Dashboard() {
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)} />
+                  <Tooltip formatter={(value: number) => formatBRL(value)} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
