@@ -143,7 +143,7 @@ function NotificationsSheet() {
   return (
     <Sheet>
       <SheetTrigger render={<ActionRow icon={<Bell size={18} />} label="Notificações" />} />
-      <SheetContent side="bottom" className="h-[90vh] sm:h-auto rounded-t-3xl p-6">
+      <SheetContent side="bottom" className="max-h-[90vh] h-auto rounded-t-3xl p-6 overflow-y-auto">
         <SheetHeader className="mb-6 text-left">
           <SheetTitle>Notificações</SheetTitle>
         </SheetHeader>
@@ -196,7 +196,7 @@ function ExportSheet() {
   return (
     <Sheet>
       <SheetTrigger render={<ActionRow icon={<FileText size={18} />} label="Exportar Relatórios" />} />
-      <SheetContent side="bottom" className="h-[90vh] sm:h-auto rounded-t-3xl p-6">
+      <SheetContent side="bottom" className="max-h-[90vh] h-auto rounded-t-3xl p-6 overflow-y-auto">
         <SheetHeader className="mb-6 text-left">
           <SheetTitle>Exportar Relatórios</SheetTitle>
         </SheetHeader>
@@ -233,7 +233,7 @@ function ResetDataSheet() {
   return (
     <Sheet>
       <SheetTrigger render={<ActionRow icon={<Trash2 size={18} />} label="Zerar Dados Financeiros" />} />
-      <SheetContent side="bottom" className="h-[90vh] sm:h-auto rounded-t-3xl p-6">
+      <SheetContent side="bottom" className="max-h-[90vh] h-auto rounded-t-3xl p-6 overflow-y-auto">
         <SheetHeader className="mb-6 text-left">
           <SheetTitle>Zerar Dados Financeiros</SheetTitle>
         </SheetHeader>
@@ -285,7 +285,7 @@ function PrivacySheet() {
   return (
     <Sheet>
       <SheetTrigger render={<ActionRow icon={<Shield size={18} />} label="Privacidade e Segurança" />} />
-      <SheetContent side="bottom" className="h-[90vh] sm:h-auto rounded-t-3xl p-6">
+      <SheetContent side="bottom" className="max-h-[90vh] h-auto rounded-t-3xl p-6 overflow-y-auto">
         <SheetHeader className="mb-6 text-left">
           <SheetTitle>Privacidade e Segurança</SheetTitle>
         </SheetHeader>
@@ -356,7 +356,7 @@ function UserProfileSheet() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger render={<ActionRow icon={<User size={18} />} label="Meus Dados" />} />
-      <SheetContent side="bottom" className="h-[90vh] sm:h-auto rounded-t-3xl p-6">
+      <SheetContent side="bottom" className="max-h-[90vh] h-auto rounded-t-3xl p-6 overflow-y-auto">
         <SheetHeader className="mb-6 text-left">
           <SheetTitle>Meus Dados</SheetTitle>
         </SheetHeader>
@@ -401,7 +401,7 @@ function WalletsSheet() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger render={<ActionRow icon={<Landmark size={18} />} label="Contas & Cartões" />} />
-      <SheetContent side="bottom" className="h-[90vh] sm:h-[80vh] rounded-t-3xl p-6 flex flex-col">
+      <SheetContent side="bottom" className="max-h-[90vh] sm:max-h-[80vh] h-auto rounded-t-3xl p-6 flex flex-col overflow-y-auto">
         <SheetHeader className="mb-6 text-left shrink-0 border-b pb-4">
           <div className="flex items-center justify-between">
             <SheetTitle>Contas & Cartões</SheetTitle>
@@ -508,7 +508,7 @@ function MonthlyGoalsSheet({ month, year }: { month: number; year: number }) {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger render={<ActionRow icon={<Target size={18} />} label="Metas Mensais" />} />
-      <SheetContent side="bottom" className="h-[90vh] sm:h-auto rounded-t-3xl p-6">
+      <SheetContent side="bottom" className="max-h-[90vh] h-auto rounded-t-3xl p-6 overflow-y-auto">
         <SheetHeader className="mb-6 text-left">
           <SheetTitle>Metas deste Mês</SheetTitle>
         </SheetHeader>
@@ -564,7 +564,7 @@ function IncomeCategoriesSheet() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger render={<ActionRow icon={<Briefcase size={18} />} label="Categorias de Receitas" />} />
-      <SheetContent side="bottom" className="h-[90vh] sm:h-[80vh] rounded-t-3xl p-6 flex flex-col">
+      <SheetContent side="bottom" className="max-h-[90vh] sm:max-h-[80vh] h-auto rounded-t-3xl p-6 flex flex-col overflow-y-auto">
         <SheetHeader className="mb-6 text-left shrink-0 border-b pb-4">
           <div className="flex items-center justify-between">
             <SheetTitle>Categorias de Receitas</SheetTitle>
@@ -671,7 +671,7 @@ function ExpenseCategoriesSheet() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger render={<ActionRow icon={<Tags size={18} />} label="Categorias de Despesas" />} />
-      <SheetContent side="bottom" className="h-[90vh] sm:h-[80vh] rounded-t-3xl p-6 flex flex-col">
+      <SheetContent side="bottom" className="max-h-[90vh] sm:max-h-[80vh] h-auto rounded-t-3xl p-6 flex flex-col overflow-y-auto">
         <SheetHeader className="mb-6 text-left shrink-0 border-b pb-4">
           <div className="flex items-center justify-between">
             <SheetTitle>Categorias</SheetTitle>
