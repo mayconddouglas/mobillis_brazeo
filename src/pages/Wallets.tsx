@@ -209,7 +209,7 @@ export default function Wallets() {
 
         <Card 
           onClick={handleOpenAdd}
-          className="min-w-[280px] snap-center shrink-0 bg-transparent hover:bg-muted/50 cursor-pointer flex items-center justify-center min-h-[160px]"
+          className="min-w-[280px] snap-center shrink-0 border-dashed border-2 bg-transparent hover:bg-muted/50 cursor-pointer flex items-center justify-center min-h-[160px]"
         >
           <div className="text-center text-muted-foreground flex flex-col items-center gap-2">
             <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
@@ -255,7 +255,7 @@ export default function Wallets() {
               const isExpense = mov.type === 'expense';
               
               return (
-                <Card key={mov.id} className="shadow-sm border">
+                <Card key={mov.id}>
                   <CardContent className="p-3 pr-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-white shadow-sm" style={{ backgroundColor: category?.color || (isExpense ? '#ef4444' : '#22c55e') }}>
@@ -279,7 +279,7 @@ export default function Wallets() {
             })}
           </div>
         ) : (
-          <div className="text-center py-12 text-muted-foreground bg-muted/20 rounded-2xl border border-border">
+          <div className="text-center py-12 text-muted-foreground bg-muted/20 rounded-2xl border border-dashed">
             <WalletIcon size={48} className="mx-auto mb-4 opacity-20" />
             <p className="text-sm">Nenhuma movimentação registrada.</p>
           </div>

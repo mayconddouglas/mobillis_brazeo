@@ -95,7 +95,7 @@ export default function Earnings() {
   return (
     <div className="p-4 space-y-6 pb-24 relative min-h-screen">
       {/* Filters */}
-      <div className="bg-card p-4 rounded-2xl border border-border shadow-sm space-y-4 mb-6">
+      <div className="bg-card p-4 rounded-2xl border shadow-sm space-y-4 mb-6">
         {/* Date Filter */}
         <div className="flex gap-2 p-1 bg-muted/50 rounded-lg">
           {(['today', 'week', 'month'] as const).map((t) => (
@@ -137,7 +137,7 @@ export default function Earnings() {
       </div>
 
       {/* Total card */}
-      <div className="bg-card border border-border rounded-2xl p-6 text-center shadow-sm relative overflow-hidden">
+      <div className="bg-card border rounded-2xl p-6 text-center shadow-sm relative overflow-hidden">
         <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2">
           Total {categoryFilter !== 'all' ? categories?.find(c => c.id === categoryFilter)?.name : 'Recebido'}
         </p>
@@ -170,7 +170,7 @@ export default function Earnings() {
               if (!category) return null;
               const IconComponent = getCategoryIcon(category.icon, 'income');
               return (
-                <div key={b.id} className="bg-card border border-border rounded-xl p-3 shadow-sm flex items-center justify-between" onClick={() => setCategoryFilter(b.id)}>
+                <div key={b.id} className="bg-card border rounded-xl p-3 shadow-sm flex items-center justify-between" onClick={() => setCategoryFilter(b.id)}>
                   <div className="flex items-center gap-2 max-w-[60%]">
                     <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-white" style={{ backgroundColor: category.color }}>
                       <IconComponent size={14} />
@@ -189,7 +189,7 @@ export default function Earnings() {
 
       {/* Chart */}
       {chartData.length > 0 && (
-         <div className="h-40 w-full mt-4 bg-card rounded-2xl border border-border p-4 shadow-sm">
+         <div className="h-40 w-full mt-4 bg-card rounded-2xl border p-4 shadow-sm">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
                 <Bar dataKey="total" fill="#3B82F6" radius={[4,4,0,0]} />

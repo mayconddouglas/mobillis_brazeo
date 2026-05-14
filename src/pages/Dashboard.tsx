@@ -55,13 +55,12 @@ export default function Dashboard() {
         </div>
       </motion.header>
 
-      {/* Hero Card */}
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4, delay: 0.1 }}
       >
-        <Card className="bg-card border border-border shadow-sm p-6 space-y-6">
+        <Card className="bg-card p-6 space-y-6">
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">Saldo Total</p>
             <div className="text-4xl font-extrabold font-mono text-foreground tracking-tighter">
@@ -96,8 +95,8 @@ export default function Dashboard() {
          transition={{ duration: 0.4, delay: 0.2 }}
          className="grid grid-cols-2 gap-4"
        >
-         <Card className="shadow-none border-border">
-           <CardContent className="p-4 flex items-center gap-4">
+         <Card className="p-4 flex items-center gap-4">
+           <CardContent className="p-0 flex items-center gap-4">
              <div className="p-3 bg-emerald-500/10 text-emerald-600 rounded-2xl">
                <TrendingUp size={20} />
              </div>
@@ -108,8 +107,8 @@ export default function Dashboard() {
            </CardContent>
          </Card>
          
-         <Card className="shadow-none border-border">
-           <CardContent className="p-4 flex items-center gap-4">
+         <Card className="p-4 flex items-center gap-4">
+           <CardContent className="p-0 flex items-center gap-4">
              <div className="p-3 bg-red-500/10 text-red-600 rounded-2xl">
                <Receipt size={20} />
              </div>
@@ -129,7 +128,7 @@ export default function Dashboard() {
          <h3 className="font-bold tracking-tight mb-4">Carteiras</h3>
          <div className="grid grid-cols-2 gap-4">
            {wallets?.map((wallet) => (
-             <Card key={wallet.id} className="shadow-none border-border">
+             <Card key={wallet.id}>
                <CardContent className="p-4 flex items-center gap-3">
                  <div className="p-2 rounded-xl" style={{ backgroundColor: `${wallet.color}15`, color: wallet.color }}>
                    <Wallet size={18} />
@@ -144,54 +143,54 @@ export default function Dashboard() {
          </div>
        </motion.div>
 
-      {/* Chart: Income Categories */}
-      <motion.div 
-         initial={{ opacity: 0, y: 20 }}
-         animate={{ opacity: 1, y: 0 }}
-         transition={{ duration: 0.4, delay: 0.4 }}
-      >
-        <h3 className="font-bold tracking-tight mb-4">Receitas por Categoria</h3>
-        <Card className="shadow-none border-border">
-          <CardContent className="p-6">
-            <div className="h-[200px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={pieData.length ? pieData : [{name: 'Sem dados', value: 1, color: '#e2e8f0'}]}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {pieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value: number) => formatBRL(value)} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="grid grid-cols-2 gap-2 mt-4">
-              {pieData.map((d, i) => (
-                <div key={i} className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-                  <span className="w-3 h-3 rounded-full" style={{ backgroundColor: d.color }}></span>
-                  {d.name}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+       {/* Chart: Income Categories */}
+       <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.4 }}
+       >
+         <h3 className="font-bold tracking-tight mb-4">Receitas por Categoria</h3>
+         <Card>
+           <CardContent className="p-6">
+             <div className="h-[200px] w-full">
+               <ResponsiveContainer width="100%" height="100%">
+                 <PieChart>
+                   <Pie
+                     data={pieData.length ? pieData : [{name: 'Sem dados', value: 1, color: '#e2e8f0'}]}
+                     cx="50%"
+                     cy="50%"
+                     innerRadius={60}
+                     outerRadius={80}
+                     paddingAngle={5}
+                     dataKey="value"
+                   >
+                     {pieData.map((entry, index) => (
+                       <Cell key={`cell-${index}`} fill={entry.color} />
+                     ))}
+                   </Pie>
+                   <Tooltip formatter={(value: number) => formatBRL(value)} />
+                 </PieChart>
+               </ResponsiveContainer>
+             </div>
+             <div className="grid grid-cols-2 gap-2 mt-4">
+               {pieData.map((d, i) => (
+                 <div key={i} className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+                   <span className="w-3 h-3 rounded-full" style={{ backgroundColor: d.color }}></span>
+                   {d.name}
+                 </div>
+               ))}
+             </div>
+           </CardContent>
+         </Card>
+       </motion.div>
 
-      <motion.div 
-         initial={{ opacity: 0, y: 20 }}
-         animate={{ opacity: 1, y: 0 }}
-         transition={{ duration: 0.4, delay: 0.5 }}
-      >
-        <InsightsSection />
-      </motion.div>
+       <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.5 }}
+       >
+         <InsightsSection />
+       </motion.div>
     </div>
   );
 }

@@ -245,7 +245,9 @@ export function TransactionModal({
               render={({ field }) => (
                 <Select value={field.value} onValueChange={field.onChange}>
                   <SelectTrigger className="h-12">
-                    <SelectValue placeholder="Selecione a conta" />
+                    <SelectValue placeholder="Selecione a conta">
+                      {wallets.find(w => w.id === field.value)?.name}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {wallets.map(w => (
@@ -266,7 +268,9 @@ export function TransactionModal({
               render={({ field }) => (
                 <Select value={field.value} onValueChange={field.onChange}>
                   <SelectTrigger className="h-12">
-                    <SelectValue placeholder="Selecione a categoria" />
+                    <SelectValue placeholder="Selecione a categoria">
+                      {categories.find(c => c.id === field.value)?.name}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {categories.map(c => (
