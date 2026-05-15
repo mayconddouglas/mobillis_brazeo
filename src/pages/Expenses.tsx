@@ -15,7 +15,7 @@ import { Expense } from '@/types/expense';
 export default function Expenses() {
   const { data: expenses, addExpense, addMultipleExpenses, updateExpense, deleteExpense } = useExpenses();
   const { data: categories } = useExpenseCategories();
-  const { data: wallets, updateWallet } = useWallets();
+  const { data: wallets, updateWallet, transferToWallet } = useWallets();
   
   const [filter, setFilter] = useState<'today' | 'week' | 'month'>('month');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
@@ -36,12 +36,24 @@ export default function Expenses() {
   const handleSaveExpense = async (payloads: any[]) => {
     if (editingExpense) {
       const payload = payloads[0];
+      // Note: If wallet changed or amount changed, we might need a more complex update, but let's start with this.
       await updateExpense(payload);
     } else {
       if (addMultipleExpenses && payloads.length > 1) {
         await addMultipleExpenses(payloads);
+        for (const p of payloads) {
+          const wallet = wallets?.find(w => w.id === p.wallet_id);
+          if (wallet) {
+            await transferToWallet({ walletId: wallet.id, amount: -p.amount });
+          }
+        }
       } else {
-        await addExpense(payloads[0]);
+        const payload = payloads[0];
+        await addExpense(payload);
+        const wallet = wallets?.find(w => w.id === payload.wallet_id);
+        if (wallet) {
+          await transferToWallet({ walletId: wallet.id, amount: -payload.amount });
+        }
       }
     }
   };
