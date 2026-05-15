@@ -715,16 +715,16 @@ function ExpenseCategoriesSheet() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger render={<ActionRow icon={<Tags size={18} />} label="Categorias de Despesas" />} />
-      <SheetContent side="bottom" className="h-[90vh] sm:h-[85vh] rounded-t-3xl p-6 flex flex-col bg-background">
+      <SheetContent side="bottom" className="h-[90dvh] sm:h-[85vh] rounded-t-3xl p-6 flex flex-col bg-background overflow-hidden w-full">
         <SheetHeader className="mb-4 text-left shrink-0 pb-2">
           <div className="flex items-center justify-between">
-            <div>
-              <SheetTitle className="text-xl">Categorias</SheetTitle>
-              <p className="text-xs text-muted-foreground mt-1">Gerencie como você classifica seus gastos.</p>
+            <div className="min-w-0 flex-1 pr-4">
+              <SheetTitle className="text-xl truncate">Categorias</SheetTitle>
+              <p className="text-xs text-muted-foreground mt-1 truncate">Gerencie como você classifica seus gastos.</p>
             </div>
             <Button
               size="sm"
-              className="rounded-full gap-1 shadow-sm px-4"
+              className="rounded-full gap-1 shadow-sm px-4 shrink-0"
               onClick={() => setIsAddOpen(true)}
             >
               <Plus size={16} /> Nova
@@ -776,11 +776,11 @@ function ExpenseCategoriesSheet() {
           </div>
         </SheetHeader>
         
-        <div className="flex-1 overflow-y-auto space-y-6 pb-12 pr-1">
+        <div className="flex-1 overflow-y-auto space-y-6 pb-12 w-full">
           {/* Sugestões Rápidas */}
-          <div className="space-y-3">
+          <div className="space-y-3 w-full max-w-full overflow-hidden">
             <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Sugestões Rápidas</h4>
-            <div className="flex overflow-x-auto pb-4 pt-1 gap-3 hide-scrollbar -mx-2 px-2 snap-x">
+            <div className="flex overflow-x-auto pb-4 pt-1 gap-3 hide-scrollbar snap-x w-full">
               {predefinedCategories.map((cat, idx) => {
                 const IconComp = categoryIconMap[cat.icon] || Tags;
                 const exists = categories?.some(c => c.name.toLowerCase() === cat.name.toLowerCase());
@@ -790,10 +790,10 @@ function ExpenseCategoriesSheet() {
                     onClick={() => !exists && handleAddPredefined(cat)}
                     className={`snap-start shrink-0 w-28 p-3 rounded-2xl border transition-all ${exists ? 'opacity-50 grayscale cursor-not-allowed border-dashed bg-transparent' : 'bg-card shadow-sm cursor-pointer hover:border-primary/50 hover:shadow-md active:scale-95 flex flex-col items-center justify-center text-center gap-2'}`}
                   >
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-sm" style={{ backgroundColor: cat.color }}>
+                    <div className="w-10 h-10 rounded-full shrink-0 flex items-center justify-center text-white shadow-sm" style={{ backgroundColor: cat.color }}>
                       <IconComp size={18} />
                     </div>
-                    <span className="text-xs font-semibold px-1 w-full truncate">{cat.name}</span>
+                    <span className="text-xs font-semibold px-1 w-full truncate block">{cat.name}</span>
                     {exists && <Check size={12} className="absolute top-2 right-2 text-muted-foreground" />}
                   </div>
                 )
@@ -802,28 +802,28 @@ function ExpenseCategoriesSheet() {
           </div>
 
           {/* Categorias do Usuário */}
-          <div className="space-y-3">
+          <div className="space-y-3 w-full">
             <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Suas Categorias</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
               {categories?.map(c => {
                 const IconComponent = categoryIconMap[c.icon] || Tags;
                 return (
-                <div key={c.id} className="group flex items-center justify-between p-3.5 border rounded-2xl shadow-sm bg-card hover:border-primary/20 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-sm" style={{ backgroundColor: c.color }}>
+                <div key={c.id} className="group flex items-center justify-between p-3 border rounded-2xl shadow-sm bg-card hover:border-primary/20 transition-colors w-full overflow-hidden">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <div className="w-10 h-10 shrink-0 rounded-full flex items-center justify-center text-white shadow-sm" style={{ backgroundColor: c.color }}>
                       <IconComponent size={18} />
                     </div>
-                    <div className="flex flex-col">
-                      <span className="font-semibold text-sm">{c.name}</span>
+                    <div className="flex flex-col min-w-0 flex-1 pr-2">
+                      <span className="font-semibold text-sm truncate w-full block">{c.name}</span>
                     </div>
                   </div>
-                  <Button variant="ghost" size="icon" className="w-8 h-8 rounded-full text-red-500 opacity-80 hover:opacity-100 hover:bg-red-50" onClick={() => deleteCategory(c.id)}>
+                  <Button variant="ghost" size="icon" className="w-8 h-8 shrink-0 rounded-full text-red-500 opacity-80 hover:opacity-100 hover:bg-red-50" onClick={() => deleteCategory(c.id)}>
                     <Trash2 size={16} />
                   </Button>
                 </div>
               )})}
               {categories?.length === 0 && (
-                <div className="col-span-1 border-dashed border-2 rounded-2xl p-8 flex flex-col items-center justify-center text-center text-muted-foreground gap-2">
+                <div className="col-span-1 sm:col-span-2 border-dashed border-2 rounded-2xl p-8 flex flex-col items-center justify-center text-center text-muted-foreground gap-2 w-full">
                   <Tags size={24} className="opacity-20" />
                   <p className="text-sm">Você ainda não tem categorias de despesas.</p>
                 </div>
