@@ -246,7 +246,7 @@ export function TransactionModal({
                 <Select value={field.value} onValueChange={field.onChange}>
                   <SelectTrigger className="h-12">
                     <SelectValue placeholder="Selecione a conta">
-                      {wallets.find(w => w.id === field.value)?.name}
+                      {wallets.find(w => w.id === field.value)?.name || "Selecione a conta"}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
@@ -269,7 +269,7 @@ export function TransactionModal({
                 <Select value={field.value} onValueChange={field.onChange}>
                   <SelectTrigger className="h-12">
                     <SelectValue placeholder="Selecione a categoria">
-                      {categories.find(c => c.id === field.value)?.name}
+                      {categories.find(c => c.id === field.value)?.name || "Selecione a categoria"}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
@@ -370,7 +370,9 @@ export function TransactionModal({
                   render={({ field }) => (
                     <Select value={field.value} onValueChange={field.onChange}>
                       <SelectTrigger className="h-12 w-full">
-                        <SelectValue placeholder="Selecione..." />
+                        <SelectValue placeholder="Selecione...">
+                          {field.value ? `${field.value}x` : "Selecione..."}
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
                         {[2, 3, 4, 5, 6, 10, 12, 24].map((num) => (
@@ -399,7 +401,9 @@ export function TransactionModal({
                   render={({ field }) => (
                     <Select value={field.value} onValueChange={field.onChange}>
                       <SelectTrigger className="h-12 w-full">
-                        <SelectValue placeholder="Selecione..." />
+                        <SelectValue placeholder="Selecione...">
+                          {field.value === 'weekly' ? 'Semanal' : field.value === 'monthly' ? 'Mensal' : field.value === 'yearly' ? 'Anual' : "Selecione..."}
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="weekly">Semanal</SelectItem>

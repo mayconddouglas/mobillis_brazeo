@@ -175,3 +175,85 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- ========================================================
+-- 9. TRIGGERS PARA ATUALIZAÇÃO AUTOMÁTICA DE SALDO NAS CARTEIRAS
+-- ========================================================
+
+-- Trigger para despesas (expenses)
+CREATE OR REPLACE FUNCTION public.trg_expense_wallet_balance()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF TG_OP = 'INSERT' THEN
+    IF NEW.wallet_id IS NOT NULL THEN
+      UPDATE public.wallets SET balance = balance - NEW.amount WHERE id = NEW.wallet_id;
+    END IF;
+  ELSIF TG_OP = 'UPDATE' THEN
+    -- Se a carteira não mudou
+    IF OLD.wallet_id = NEW.wallet_id AND NEW.wallet_id IS NOT NULL THEN
+      UPDATE public.wallets SET balance = balance + OLD.amount - NEW.amount WHERE id = NEW.wallet_id;
+    ELSIF OLD.wallet_id IS DISTINCT FROM NEW.wallet_id THEN
+      IF OLD.wallet_id IS NOT NULL THEN
+        UPDATE public.wallets SET balance = balance + OLD.amount WHERE id = OLD.wallet_id;
+      END IF;
+      IF NEW.wallet_id IS NOT NULL THEN
+        UPDATE public.wallets SET balance = balance - NEW.amount WHERE id = NEW.wallet_id;
+      END IF;
+    END IF;
+  ELSIF TG_OP = 'DELETE' THEN
+    IF OLD.wallet_id IS NOT NULL THEN
+      UPDATE public.wallets SET balance = balance + OLD.amount WHERE id = OLD.wallet_id;
+    END IF;
+  END IF;
+  
+  IF TG_OP = 'DELETE' THEN
+    RETURN OLD;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS expense_wallet_balance_trigger ON public.expenses;
+
+CREATE TRIGGER expense_wallet_balance_trigger
+  AFTER INSERT OR UPDATE OR DELETE ON public.expenses
+  FOR EACH ROW EXECUTE FUNCTION public.trg_expense_wallet_balance();
+
+-- Trigger para receitas (earnings)
+CREATE OR REPLACE FUNCTION public.trg_earning_wallet_balance()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF TG_OP = 'INSERT' THEN
+    IF NEW.wallet_id IS NOT NULL THEN
+      UPDATE public.wallets SET balance = balance + NEW.amount WHERE id = NEW.wallet_id;
+    END IF;
+  ELSIF TG_OP = 'UPDATE' THEN
+    IF OLD.wallet_id = NEW.wallet_id AND NEW.wallet_id IS NOT NULL THEN
+      UPDATE public.wallets SET balance = balance - OLD.amount + NEW.amount WHERE id = NEW.wallet_id;
+    ELSIF OLD.wallet_id IS DISTINCT FROM NEW.wallet_id THEN
+      IF OLD.wallet_id IS NOT NULL THEN
+        UPDATE public.wallets SET balance = balance - OLD.amount WHERE id = OLD.wallet_id;
+      END IF;
+      IF NEW.wallet_id IS NOT NULL THEN
+        UPDATE public.wallets SET balance = balance + NEW.amount WHERE id = NEW.wallet_id;
+      END IF;
+    END IF;
+  ELSIF TG_OP = 'DELETE' THEN
+    IF OLD.wallet_id IS NOT NULL THEN
+      UPDATE public.wallets SET balance = balance - OLD.amount WHERE id = OLD.wallet_id;
+    END IF;
+  END IF;
+
+  IF TG_OP = 'DELETE' THEN
+    RETURN OLD;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS earning_wallet_balance_trigger ON public.earnings;
+
+CREATE TRIGGER earning_wallet_balance_trigger
+  AFTER INSERT OR UPDATE OR DELETE ON public.earnings
+  FOR EACH ROW EXECUTE FUNCTION public.trg_earning_wallet_balance();
+
