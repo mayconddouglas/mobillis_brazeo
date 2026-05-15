@@ -38,7 +38,7 @@ export default function Expenses() {
     
     // Sanitize payloads to remove fields not in the database table
     const safePayloads = payloads.map(p => {
-      const { is_installment, installment_current, installment_total, group_id, ...rest } = p;
+      const { balance, is_installment, installment_current, installment_total, group_id, ...rest } = p;
       return rest;
     });
 
