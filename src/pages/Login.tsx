@@ -12,7 +12,7 @@ export default function Login() {
   }
 
   return (
-    <div className="flex min-h-screen w-full flex-col items-center justify-center p-6 bg-background relative overflow-hidden">
+    <div className="fixed inset-0 flex flex-col items-center justify-center p-6 bg-background overflow-hidden">
       <motion.div 
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
