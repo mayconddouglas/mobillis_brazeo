@@ -13,7 +13,7 @@ import {
   Car, Bike, Truck, Package, ShoppingBag,
   Tag, Fuel, Coffee, HomeIcon, Smartphone, Wrench, ShoppingCart,
   FileText, Zap, Gift, Plane, Music, Film, Book, GraduationCap, DollarSign, CreditCard, PiggyBank,
-  Heart, Star, Umbrella, Award
+  Heart, Star, Umbrella, Award, Activity, Utensils, MoreHorizontal
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -28,7 +28,9 @@ const incomeCategoryIconMap: Record<string, any> = {
 };
 
 const categoryIconMap: Record<string, any> = {
-  tag: Tag, fuel: Fuel, coffee: Coffee, home: HomeIcon, smartphone: Smartphone, wrench: Wrench, 'shopping-cart': ShoppingCart
+  tag: Tag, fuel: Fuel, coffee: Coffee, home: HomeIcon, smartphone: Smartphone, wrench: Wrench, 'shopping-cart': ShoppingCart,
+  book: Book, zap: Zap, plane: Plane, heart: Heart, 'shopping-bag': ShoppingBag, 'file-text': FileText, activity: Activity,
+  utensils: Utensils, car: Car, 'more-horizontal': MoreHorizontal
 };
 import {
   Sheet,
@@ -683,6 +685,18 @@ function ExpenseCategoriesSheet() {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [newCat, setNewCat] = useState({ name: '', color: '#EF4444', icon: 'tag' });
 
+  const lighterColors = ['#60a5fa', '#4ade80', '#f87171', '#fbbf24', '#c084fc', '#f472b6', '#2dd4bf', '#a78bfa', '#34d399', '#fbbf24'];
+
+  const predefinedCategories = [
+    { name: 'Educação', icon: 'book', color: '#6366f1' },
+    { name: 'Assinaturas', icon: 'zap', color: '#14b8a6' },
+    { name: 'Viagens', icon: 'plane', color: '#0ea5e9' },
+    { name: 'Pets', icon: 'heart', color: '#ec4899' },
+    { name: 'Roupas', icon: 'shopping-bag', color: '#8b5cf6' },
+    { name: 'Impostos', icon: 'file-text', color: '#ef4444' },
+    { name: 'Outros', icon: 'more-horizontal', color: '#64748b' }
+  ];
+
   const handleAdd = async () => {
     if (!newCat.name) return;
     await addCategory(newCat);
@@ -690,20 +704,30 @@ function ExpenseCategoriesSheet() {
     setIsAddOpen(false);
   };
 
+  const handleAddPredefined = async (cat: any) => {
+    if (categories?.some(c => c.name.toLowerCase() === cat.name.toLowerCase())) {
+      alert("Você já possui esta categoria.");
+      return;
+    }
+    await addCategory(cat);
+  };
+
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger render={<ActionRow icon={<Tags size={18} />} label="Categorias de Despesas" />} />
-      <SheetContent side="bottom" className="h-[90vh] sm:h-[80vh] rounded-t-3xl p-6 flex flex-col">
-        <SheetHeader className="mb-6 text-left shrink-0 border-b pb-4">
+      <SheetContent side="bottom" className="h-[90vh] sm:h-[85vh] rounded-t-3xl p-6 flex flex-col bg-background">
+        <SheetHeader className="mb-4 text-left shrink-0 pb-2">
           <div className="flex items-center justify-between">
-            <SheetTitle>Categorias</SheetTitle>
+            <div>
+              <SheetTitle className="text-xl">Categorias</SheetTitle>
+              <p className="text-xs text-muted-foreground mt-1">Gerencie como você classifica seus gastos.</p>
+            </div>
             <Button
-              size="icon"
-              variant="outline"
-              className="w-8 h-8 rounded-full"
+              size="sm"
+              className="rounded-full gap-1 shadow-sm px-4"
               onClick={() => setIsAddOpen(true)}
             >
-              <Plus size={16} />
+              <Plus size={16} /> Nova
             </Button>
             <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
               <DialogContent className="sm:max-w-md w-[calc(100%-32px)] mx-auto rounded-2xl p-6">
@@ -712,57 +736,100 @@ function ExpenseCategoriesSheet() {
                 </DialogHeader>
                 <div className="space-y-4 mt-4">
                   <div className="space-y-2">
-                    <Label>Nome</Label>
+                    <Label>Nome da Categoria</Label>
                     <Input value={newCat.name} onChange={e => setNewCat({...newCat, name: e.target.value})} className="h-12" placeholder="Ex: Multas, Estacionamento" />
                   </div>
                   <div className="space-y-2">
-                    <Label>Cor</Label>
-                    <div className="flex gap-4 items-center">
-                      <Input type="color" value={newCat.color} onChange={e => setNewCat({...newCat, color: e.target.value})} className="h-12 w-20 p-1" />
+                    <Label>Cor de Fundo</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {lighterColors.map(color => (
+                        <button
+                          key={color}
+                          onClick={() => setNewCat({...newCat, color})}
+                          className={`w-8 h-8 rounded-full border-2 ${newCat.color === color ? 'border-foreground scale-110 shadow-md' : 'border-transparent'}`}
+                          style={{ backgroundColor: color }}
+                        />
+                      ))}
                     </div>
                   </div>
                   <div className="space-y-2">
                     <Label>Ícone</Label>
-                    <div className="flex gap-2 flex-wrap">
+                    <div className="flex gap-2 flex-wrap h-40 overflow-y-auto p-2 border rounded-xl bg-card">
                       {Object.keys(categoryIconMap).map((iconKey) => {
                         const IconComponent = categoryIconMap[iconKey];
                         return (
                           <div 
                             key={iconKey} 
                             onClick={() => setNewCat({...newCat, icon: iconKey})}
-                            className={`w-10 h-10 rounded-full flex items-center justify-center cursor-pointer border-2 transition-all ${newCat.icon === iconKey ? 'border-primary bg-primary/10' : 'border-transparent bg-muted'}`}
+                            className={`w-10 h-10 rounded-full flex items-center justify-center cursor-pointer border-2 transition-all ${newCat.icon === iconKey ? 'border-primary bg-primary/10 shadow-sm' : 'border-transparent hover:bg-muted'}`}
                           >
-                            <IconComponent size={18} />
+                            <IconComponent size={18} className={newCat.icon === iconKey ? 'text-primary' : 'text-muted-foreground'} />
                           </div>
                         )
                       })}
                     </div>
                   </div>
-                  <Button onClick={handleAdd} className="w-full h-12 font-bold mt-2">Salvar Categoria</Button>
+                  <Button onClick={handleAdd} className="w-full h-12 font-bold mt-2 rounded-xl">Salvar Categoria</Button>
                 </div>
               </DialogContent>
             </Dialog>
           </div>
         </SheetHeader>
-        <div className="flex-1 overflow-y-auto space-y-3 pb-8">
-          {categories?.map(c => {
-            const IconComponent = categoryIconMap[c.icon] || Tags;
-            return (
-            <div key={c.id} className="flex items-center justify-between p-3 border rounded-xl shadow-sm bg-card">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center text-white" style={{ backgroundColor: c.color }}>
-                  <IconComponent size={18} />
-                </div>
-                <div>
-                  <p className="font-semibold text-sm">{c.name}</p>
-                </div>
-              </div>
-              <Button variant="ghost" size="icon" className="w-8 h-8 rounded-full text-red-500 hover:text-red-600 hover:bg-red-50" onClick={() => deleteCategory(c.id)}>
-                <Trash2 size={14} />
-              </Button>
+        
+        <div className="flex-1 overflow-y-auto space-y-6 pb-12 pr-1">
+          {/* Sugestões Rápidas */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Sugestões Rápidas</h4>
+            <div className="flex overflow-x-auto pb-4 pt-1 gap-3 hide-scrollbar -mx-2 px-2 snap-x">
+              {predefinedCategories.map((cat, idx) => {
+                const IconComp = categoryIconMap[cat.icon] || Tags;
+                const exists = categories?.some(c => c.name.toLowerCase() === cat.name.toLowerCase());
+                return (
+                  <div 
+                    key={idx} 
+                    onClick={() => !exists && handleAddPredefined(cat)}
+                    className={`snap-start shrink-0 w-28 p-3 rounded-2xl border transition-all ${exists ? 'opacity-50 grayscale cursor-not-allowed border-dashed bg-transparent' : 'bg-card shadow-sm cursor-pointer hover:border-primary/50 hover:shadow-md active:scale-95 flex flex-col items-center justify-center text-center gap-2'}`}
+                  >
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-sm" style={{ backgroundColor: cat.color }}>
+                      <IconComp size={18} />
+                    </div>
+                    <span className="text-xs font-semibold px-1 w-full truncate">{cat.name}</span>
+                    {exists && <Check size={12} className="absolute top-2 right-2 text-muted-foreground" />}
+                  </div>
+                )
+              })}
             </div>
-          )})}
-          {categories?.length === 0 && <p className="text-center text-muted-foreground py-8 text-sm">Nenhuma categoria cadastrada.</p>}
+          </div>
+
+          {/* Categorias do Usuário */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Suas Categorias</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {categories?.map(c => {
+                const IconComponent = categoryIconMap[c.icon] || Tags;
+                return (
+                <div key={c.id} className="group flex items-center justify-between p-3.5 border rounded-2xl shadow-sm bg-card hover:border-primary/20 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-sm" style={{ backgroundColor: c.color }}>
+                      <IconComponent size={18} />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="font-semibold text-sm">{c.name}</span>
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="icon" className="w-8 h-8 rounded-full text-red-500 opacity-80 hover:opacity-100 hover:bg-red-50" onClick={() => deleteCategory(c.id)}>
+                    <Trash2 size={16} />
+                  </Button>
+                </div>
+              )})}
+              {categories?.length === 0 && (
+                <div className="col-span-1 border-dashed border-2 rounded-2xl p-8 flex flex-col items-center justify-center text-center text-muted-foreground gap-2">
+                  <Tags size={24} className="opacity-20" />
+                  <p className="text-sm">Você ainda não tem categorias de despesas.</p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </SheetContent>
     </Sheet>
