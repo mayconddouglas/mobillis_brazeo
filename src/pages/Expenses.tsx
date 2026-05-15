@@ -34,13 +34,15 @@ export default function Expenses() {
   };
 
   const handleSaveExpense = async (payloads: any[]) => {
-    console.log('handleSaveExpense called with:', payloads);
+    console.log('handleSaveExpense called with:', JSON.stringify(payloads, null, 2));
     
     // Sanitize payloads to remove fields not in the database table
     const safePayloads = payloads.map(p => {
       const { balance, is_installment, installment_current, installment_total, group_id, ...rest } = p;
       return rest;
     });
+
+    console.log('safePayloads to send:', JSON.stringify(safePayloads, null, 2));
 
     if (editingExpense) {
       await updateExpense(safePayloads[0]);

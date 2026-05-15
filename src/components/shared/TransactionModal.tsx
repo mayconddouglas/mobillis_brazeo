@@ -173,27 +173,50 @@ export function TransactionModal({
 
         if (data.transaction_type === 'single') {
           payloads.push({
-            ...basePayload,
+            amount: basePayload.amount,
+            category_id: basePayload.category_id,
+            wallet_id: basePayload.wallet_id,
+            description: basePayload.description,
             date: data.date,
             is_recurring: false,
-            is_installment: false,
           });
         } else if (data.transaction_type === 'installment') {
           const count = parseInt(data.installment_count || '0', 10);
           const parcelAmount = parseFloat((basePayload.amount / count).toFixed(2));
+          // Sanitizing payload to remove non-database fields
           payloads = buildInstallmentPayloads(
-            { ...basePayload, amount: parcelAmount, group_id: groupId } as any,
+            {
+              amount: parcelAmount,
+              category_id: basePayload.category_id,
+              wallet_id: basePayload.wallet_id,
+              description: basePayload.description,
+              date: data.date, 
+              is_recurring: false,
+            },
             count,
             baseDateObj
           );
+          // Manually ensure is_installment-related fields are stripped after building payloads
+          payloads = payloads.map(({ is_installment, installment_current, installment_total, group_id, ...rest }) => rest);
         } else if (data.transaction_type === 'recurring') {
           const count = data.recurring_frequency === 'monthly' ? 12 : (data.recurring_frequency === 'yearly' ? 5 : 12);
+          // Sanitizing payload to remove non-database fields
           payloads = buildRecurringPayloads(
-            { ...basePayload, group_id: groupId } as any,
+            {
+              amount: basePayload.amount,
+              category_id: basePayload.category_id,
+              wallet_id: basePayload.wallet_id,
+              description: basePayload.description,
+              date: data.date,
+              is_recurring: true,
+            },
             data.recurring_frequency as RecurringFrequency,
             baseDateObj,
             count
           );
+          // Manually ensure recurring-related fields are stripped after building payloads 
+          // (is_recurring is a database field, keep it!)
+          payloads = payloads.map(({ group_id, ...rest }) => rest);
         }
         await onSave(payloads);
       }
