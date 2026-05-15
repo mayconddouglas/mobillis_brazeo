@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "finance:check": "node --experimental-strip-types --experimental-specifier-resolution=node scripts/finance-regression.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",

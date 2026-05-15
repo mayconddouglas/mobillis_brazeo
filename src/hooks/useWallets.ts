@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useMemo } from 'react';
 import { useEarnings } from './useEarnings';
 import { useExpenses } from './useExpenses';
-import { toCents, fromCents } from '@/utils/money';
+import { deriveWalletBalances } from '@/utils/walletBalance';
 
 export interface Wallet {
   id: string;
@@ -80,29 +80,11 @@ export function useWallets() {
       (import.meta as any)?.env?.DEV &&
       window.localStorage?.getItem('debug_finance') === '1';
 
-    const netByWalletId = new Map<string, number>();
-    for (const e of earnings ?? []) {
-      const walletId = (e as any).wallet_id as string | null | undefined;
-      if (!walletId) continue;
-      netByWalletId.set(walletId, (netByWalletId.get(walletId) ?? 0) + toCents((e as any).amount));
-    }
-    for (const x of expenses ?? []) {
-      const walletId = (x as any).wallet_id as string | null | undefined;
-      if (!walletId) continue;
-      netByWalletId.set(walletId, (netByWalletId.get(walletId) ?? 0) - toCents((x as any).amount));
-    }
-
-    const next = rows.map((wallet) => {
-      const base = toCents((wallet as any).base_balance ?? (wallet as any).balance ?? 0);
-      const net = netByWalletId.get(wallet.id) ?? 0;
-      const derived = fromCents(base + net);
-
-      return {
-        ...wallet,
-        base_balance: fromCents(base),
-        balance: derived,
-      };
-    });
+    const next = deriveWalletBalances<Wallet>(
+      rows as Wallet[],
+      (earnings ?? []) as any,
+      (expenses ?? []) as any
+    );
 
     if (debug) {
       console.debug(
