@@ -32,7 +32,8 @@ export default function App() {
         <Route path="/privacidade" element={<Privacy />} />
         
         <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/receitas" element={<Earnings />} />
           <Route path="/despesas" element={<Expenses />} />
           <Route path="/contas" element={<Wallets />} />
