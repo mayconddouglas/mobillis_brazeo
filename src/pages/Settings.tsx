@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import imageCompression from 'browser-image-compression';
 import { useAuth } from '../contexts/AuthContext';
 import { useIncomeCategories, useExpenseCategories, useGoals, useProfile, useWallets, useEarnings, useExpenses } from '../hooks';
@@ -350,6 +351,16 @@ function PrivacySheet() {
           </div>
           
           <div className="space-y-3">
+            <Link to="/termos" className="w-full block">
+              <Button variant="outline" className="w-full h-12 justify-start gap-3">
+                <FileText size={18} /> Termos de Serviço
+              </Button>
+            </Link>
+            <Link to="/privacidade" className="w-full block">
+              <Button variant="outline" className="w-full h-12 justify-start gap-3">
+                <Shield size={18} /> Política de Privacidade
+              </Button>
+            </Link>
             <Button variant="outline" className="w-full h-12 justify-start gap-3" onClick={handleExportJSON}>
               <FileText size={18} /> Exportar dados como JSON
             </Button>
