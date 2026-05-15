@@ -15,7 +15,7 @@ import { Expense } from '@/types/expense';
 export default function Expenses() {
   const { data: expenses, addExpense, addMultipleExpenses, updateExpense, deleteExpense } = useExpenses();
   const { data: categories } = useExpenseCategories();
-  const { data: wallets, updateWallet, transferToWallet } = useWallets();
+  const { data: wallets, updateWallet } = useWallets();
   
   const [filter, setFilter] = useState<'today' | 'week' | 'month'>('month');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
@@ -34,26 +34,24 @@ export default function Expenses() {
   };
 
   const handleSaveExpense = async (payloads: any[]) => {
+    console.log('handleSaveExpense called with:', payloads);
+    
+    // Sanitize payloads to remove fields not in the database table
+    const safePayloads = payloads.map(p => {
+      const { is_installment, installment_current, installment_total, group_id, ...rest } = p;
+      return rest;
+    });
+
     if (editingExpense) {
-      const payload = payloads[0];
-      // Note: If wallet changed or amount changed, we might need a more complex update, but let's start with this.
-      await updateExpense(payload);
+      await updateExpense(safePayloads[0]);
+      console.log('updateExpense finished');
     } else {
-      if (addMultipleExpenses && payloads.length > 1) {
-        await addMultipleExpenses(payloads);
-        for (const p of payloads) {
-          const wallet = wallets?.find(w => w.id === p.wallet_id);
-          if (wallet) {
-            await transferToWallet({ walletId: wallet.id, amount: -p.amount });
-          }
-        }
+      if (addMultipleExpenses && safePayloads.length > 1) {
+        await addMultipleExpenses(safePayloads);
+        console.log('addMultipleExpenses finished');
       } else {
-        const payload = payloads[0];
-        await addExpense(payload);
-        const wallet = wallets?.find(w => w.id === payload.wallet_id);
-        if (wallet) {
-          await transferToWallet({ walletId: wallet.id, amount: -payload.amount });
-        }
+        await addExpense(safePayloads[0]);
+        console.log('addExpense finished');
       }
     }
   };

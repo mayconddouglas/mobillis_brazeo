@@ -38,13 +38,19 @@ export default function Earnings() {
   };
 
   const handleSaveEarning = async (payloads: any[]) => {
+    // Sanitize payloads to remove fields not in the database table
+    const safePayloads = payloads.map(p => {
+      const { is_installment, installment_current, installment_total, group_id, ...rest } = p;
+      return rest;
+    });
+
     if (editingEarning) {
-      await updateEarning(payloads[0]);
+      await updateEarning(safePayloads[0]);
     } else {
-      if (addMultipleEarnings && payloads.length > 1) {
-        await addMultipleEarnings(payloads);
+      if (addMultipleEarnings && safePayloads.length > 1) {
+        await addMultipleEarnings(safePayloads);
       } else {
-        await addEarning(payloads[0]);
+        await addEarning(safePayloads[0]);
       }
     }
   };

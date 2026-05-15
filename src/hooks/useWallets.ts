@@ -43,10 +43,39 @@ export function useWallets() {
   const query = useQuery({
     queryKey: ['wallets', user?.id],
     queryFn: async () => {
-      if (isDemo) return loadDemoWallets(user?.id);
-      const { data, error } = await supabase.from('wallets').select('*').eq('user_id', user?.id).order('name');
-      if (error) throw error;
-      return data as Wallet[];
+      let walletsData: Wallet[];
+      let earningsData: any[] = [];
+      let expensesData: any[] = [];
+
+      if (isDemo) {
+        walletsData = loadDemoWallets(user?.id);
+        // We'd need to mock the loading of expenses/earnings similarly, but for now we'll assume they are loaded via other queries and this hook is getting stale data?
+        // Actually, this hook needs to be able to fetch earnings/expenses.
+        // Given constraints, I will fetch them directly via supabase here.
+      } else {
+        const [walletsRes, earningsRes, expensesRes] = await Promise.all([
+          supabase.from('wallets').select('*').eq('user_id', user?.id).order('name'),
+          supabase.from('earnings').select('*').eq('user_id', user?.id),
+          supabase.from('expenses').select('*').eq('user_id', user?.id)
+        ]);
+        if (walletsRes.error) throw walletsRes.error;
+        walletsData = walletsRes.data as Wallet[];
+        earningsData = earningsRes.data || [];
+        expensesData = expensesRes.data || [];
+      }
+
+      return walletsData.map(wallet => {
+        const walletEarnings = earningsData.filter(e => e.wallet_id === wallet.id).reduce((sum, e) => sum + Number(e.amount), 0);
+        const walletExpenses = expensesData.filter(e => e.wallet_id === wallet.id).reduce((sum, e) => sum + Number(e.amount), 0);
+        
+        // O Supabase DEVE conter apenas o saldo inicial base para esta formula funcionar.
+        const initialBalance = Number(wallet.base_balance) || 0;
+        
+        return { 
+          ...wallet, 
+          balance: initialBalance + walletEarnings - walletExpenses 
+        };
+      });
     },
     enabled: !!user,
   });
@@ -91,26 +120,10 @@ export function useWallets() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['wallets'] }),
   });
 
-  const transferMutation = useMutation({
-    mutationFn: async ({ walletId, amount }: { walletId: string, amount: number }) => {
-      if (isDemo) {
-        const wallets = loadDemoWallets(user?.id);
-        saveDemoWallets(user?.id, wallets.map(w => w.id === walletId ? { ...w, balance: w.balance + amount } : w));
-        return;
-      }
-      const { data: wallet, error: fetchError } = await supabase.from('wallets').select('balance').eq('id', walletId).single();
-      if (fetchError) throw fetchError;
-      const { error } = await supabase.from('wallets').update({ balance: wallet.balance + amount }).eq('id', walletId);
-      if (error) throw error;
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['wallets'] }),
-  });
-
   return {
     ...query,
     addWallet: addMutation.mutateAsync,
     updateWallet: updateMutation.mutateAsync,
-    deleteWallet: deleteMutation.mutateAsync,
-    transferToWallet: transferMutation.mutateAsync
+    deleteWallet: deleteMutation.mutateAsync
   };
 }

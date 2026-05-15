@@ -144,6 +144,7 @@ export function TransactionModal({
   };
 
   const onSubmit = async (data: TransactionFormValues) => {
+    console.log('onSubmit called with:', data);
     setSaving(true);
     try {
       const numericAmount = parseBRLInput(data.amount);
@@ -151,7 +152,7 @@ export function TransactionModal({
         amount: numericAmount,
         category_id: data.category_id,
         wallet_id: data.wallet_id,
-        description: data.description || null,
+        description: data.description || '',
       };
 
       if (editingItem) {
@@ -199,7 +200,7 @@ export function TransactionModal({
       onOpenChange(false);
     } catch (error) {
       console.error(error);
-      alert('Erro ao salvar.');
+      alert('Erro ao salvar: ' + (error instanceof Error ? error.message : JSON.stringify(error)));
     } finally {
       setSaving(false);
     }
