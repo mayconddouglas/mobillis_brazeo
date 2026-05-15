@@ -23,6 +23,7 @@ import {
 
 import { parseDateLocal } from '@/utils/date';
 import { formatBRL } from '@/utils/currency';
+import { motion } from 'motion/react';
 
 export default function Wallets() {
   const { data: wallets, addWallet, updateWallet, deleteWallet } = useWallets();
@@ -170,13 +171,23 @@ export default function Wallets() {
   }, [expenses, earnings]);
 
   return (
-    <div className="p-4 space-y-6 pb-24 relative min-h-screen">
-      <div className="flex justify-between items-center mb-6">
+    <div className="p-4 pt-8 space-y-8 pb-24 relative min-h-screen">
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2 }}
+        className="flex justify-between items-center mb-6"
+      >
         <h1 className="text-xl font-bold tracking-tight">Suas Contas</h1>
-      </div>
+      </motion.div>
 
       {/* Carousel */}
-      <div className="flex gap-4 overflow-x-auto pb-4 snap-x scrollbar-hide">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.2, delay: 0.05 }}
+        className="flex gap-4 overflow-x-auto pb-4 snap-x scrollbar-hide"
+      >
         {wallets?.map(wallet => (
           <Card 
             key={wallet.id} 
@@ -218,10 +229,15 @@ export default function Wallets() {
             <p className="font-semibold text-sm">Nova Conta</p>
           </div>
         </Card>
-      </div>
+      </motion.div>
 
       {/* Actions */}
-      <div className="grid grid-cols-2 gap-3">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, delay: 0.1 }}
+        className="grid grid-cols-2 gap-3"
+      >
         <Button 
           className="h-16 rounded-2xl flex flex-col items-center justify-center gap-1 text-sm shadow-sm bg-green-500 hover:bg-green-600 text-white" 
           onClick={() => {
@@ -242,10 +258,15 @@ export default function Wallets() {
           <ArrowLeftRight size={20} />
           <span>Transferir</span>
         </Button>
-      </div>
+      </motion.div>
 
       {/* History */}
-      <div className="mt-8">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, delay: 0.15 }}
+        className="mt-8"
+      >
         <h3 className="font-semibold tracking-tight text-sm mb-4">Últimas Movimentações</h3>
         {recentMovements.length > 0 ? (
           <div className="space-y-3">
@@ -284,7 +305,7 @@ export default function Wallets() {
             <p className="text-sm">Nenhuma movimentação registrada.</p>
           </div>
         )}
-      </div>
+      </motion.div>
 
       {/* Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>

@@ -46,6 +46,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { motion } from 'motion/react';
 
 export default function Settings() {
   const { user, signOut, isDemo } = useAuth();
@@ -65,25 +66,43 @@ export default function Settings() {
   }, [isDark]);
 
   return (
-    <div className="p-4 space-y-6 pb-24">
-      <h1 className="text-xl font-bold tracking-tight mb-6">Configurações</h1>
+    <div className="p-4 pt-8 space-y-6 pb-24">
+      <motion.h1 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2 }}
+        className="text-xl font-bold tracking-tight mb-6 mt-2"
+      >
+        Configurações
+      </motion.h1>
 
-      <Card className="bg-gradient-to-br from-primary/5 to-primary/10">
-        <CardContent className="p-6 flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center shrink-0 border border-primary/20 overflow-hidden">
-            <img src={profile?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${user?.id}`} className="w-16 h-16 object-cover" />
-          </div>
-          <div className="flex-1">
-            <h2 className="font-bold text-lg">{profile?.name || user?.user_metadata?.name || 'Usuário'}</h2>
-            <p className="text-sm text-muted-foreground">{user?.email}</p>
-          </div>
-          <Button variant="ghost" size="icon" className="shrink-0">
-            <ChevronRight className="text-muted-foreground" />
-          </Button>
-        </CardContent>
-      </Card>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.2, delay: 0.05 }}
+      >
+        <Card className="bg-gradient-to-br from-primary/5 to-primary/10 shadow-sm border-0">
+          <CardContent className="p-5 flex items-center gap-4">
+            <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center shrink-0 border border-primary/20 overflow-hidden">
+              <img src={profile?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${user?.id}`} className="w-16 h-16 object-cover" />
+            </div>
+            <div className="flex-1">
+              <h2 className="font-bold text-lg">{profile?.name || user?.user_metadata?.name || 'Usuário'}</h2>
+              <p className="text-sm text-muted-foreground">{user?.email}</p>
+            </div>
+            <Button variant="ghost" size="icon" className="shrink-0">
+              <ChevronRight className="text-muted-foreground" />
+            </Button>
+          </CardContent>
+        </Card>
+      </motion.div>
 
-      <div className="space-y-4">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, delay: 0.1 }}
+        className="space-y-4"
+      >
         <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider px-2">Preferências</h3>
         <div className="bg-card rounded-2xl border shadow-sm divide-y">
           <div className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setIsDark(!isDark)}>
@@ -97,9 +116,14 @@ export default function Settings() {
           <ExportSheet />
           <PrivacySheet />
         </div>
-      </div>
+      </motion.div>
 
-      <div className="space-y-4">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, delay: 0.15 }}
+        className="space-y-4"
+      >
         <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider px-2">Conta & Configurações</h3>
         <div className="bg-card rounded-2xl border shadow-sm divide-y">
           <UserProfileSheet />
@@ -109,11 +133,17 @@ export default function Settings() {
           <MonthlyGoalsSheet month={month} year={year} />
           <ResetDataSheet />
         </div>
-      </div>
+      </motion.div>
 
-      <Button variant="destructive" className="w-full h-12 rounded-xl mt-8" onClick={signOut}>
-        <LogOut className="mr-2" size={18} /> Sair da Conta
-      </Button>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, delay: 0.2 }}
+      >
+        <Button variant="destructive" className="w-full h-12 rounded-xl mt-12" onClick={signOut}>
+          <LogOut className="mr-2" size={18} /> Sair da Conta
+        </Button>
+      </motion.div>
     </div>
   );
 }
@@ -145,7 +175,7 @@ function NotificationsSheet() {
   return (
     <Sheet>
       <SheetTrigger render={<ActionRow icon={<Bell size={18} />} label="Notificações" />} />
-      <SheetContent side="bottom" className="h-[90vh] sm:h-auto rounded-t-3xl p-6">
+      <SheetContent side="bottom" className="max-h-[90vh] rounded-t-3xl p-6">
         <SheetHeader className="mb-6 text-left">
           <SheetTitle>Notificações</SheetTitle>
         </SheetHeader>
@@ -198,7 +228,7 @@ function ExportSheet() {
   return (
     <Sheet>
       <SheetTrigger render={<ActionRow icon={<FileText size={18} />} label="Exportar Relatórios" />} />
-      <SheetContent side="bottom" className="h-[90vh] sm:h-auto rounded-t-3xl p-6">
+      <SheetContent side="bottom" className="max-h-[90vh] rounded-t-3xl p-6">
         <SheetHeader className="mb-6 text-left">
           <SheetTitle>Exportar Relatórios</SheetTitle>
         </SheetHeader>
@@ -257,7 +287,7 @@ function ResetDataSheet() {
   return (
     <Sheet>
       <SheetTrigger render={<ActionRow icon={<Trash2 size={18} />} label="Zerar Dados Financeiros" />} />
-      <SheetContent side="bottom" className="h-[90vh] sm:h-auto rounded-t-3xl p-6">
+      <SheetContent side="bottom" className="max-h-[90vh] rounded-t-3xl p-6">
         <SheetHeader className="mb-6 text-left">
           <SheetTitle>Zerar Dados Financeiros</SheetTitle>
         </SheetHeader>
@@ -309,7 +339,7 @@ function PrivacySheet() {
   return (
     <Sheet>
       <SheetTrigger render={<ActionRow icon={<Shield size={18} />} label="Privacidade e Segurança" />} />
-      <SheetContent side="bottom" className="h-[90vh] sm:h-auto rounded-t-3xl p-6">
+      <SheetContent side="bottom" className="max-h-[90vh] rounded-t-3xl p-6">
         <SheetHeader className="mb-6 text-left">
           <SheetTitle>Privacidade e Segurança</SheetTitle>
         </SheetHeader>
@@ -380,7 +410,7 @@ function UserProfileSheet() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger render={<ActionRow icon={<User size={18} />} label="Meus Dados" />} />
-      <SheetContent side="bottom" className="h-[90vh] sm:h-auto rounded-t-3xl p-6">
+      <SheetContent side="bottom" className="max-h-[90vh] rounded-t-3xl p-6 overflow-y-auto">
         <SheetHeader className="mb-6 text-left">
           <SheetTitle>Meus Dados</SheetTitle>
         </SheetHeader>
@@ -425,7 +455,7 @@ function WalletsSheet() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger render={<ActionRow icon={<Landmark size={18} />} label="Contas & Cartões" />} />
-      <SheetContent side="bottom" className="h-[90vh] sm:h-[80vh] rounded-t-3xl p-6 flex flex-col">
+      <SheetContent side="bottom" className="max-h-[90vh] rounded-t-3xl p-6 flex flex-col">
         <SheetHeader className="mb-6 text-left shrink-0 border-b pb-4">
           <div className="flex items-center justify-between">
             <SheetTitle>Contas & Cartões</SheetTitle>
@@ -435,7 +465,7 @@ function WalletsSheet() {
           </div>
         </SheetHeader>
         
-        <div className="flex-1 overflow-y-auto space-y-3 pb-8 pr-2">
+        <div className="flex-1 overflow-y-auto space-y-3 pb-4 pr-2">
           {wallets?.map(w => {
             return (
               <Card key={w.id}>
@@ -532,7 +562,7 @@ function MonthlyGoalsSheet({ month, year }: { month: number; year: number }) {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger render={<ActionRow icon={<Target size={18} />} label="Metas Mensais" />} />
-      <SheetContent side="bottom" className="h-[90vh] sm:h-auto rounded-t-3xl p-6">
+      <SheetContent side="bottom" className="max-h-[90vh] rounded-t-3xl p-6 overflow-y-auto">
         <SheetHeader className="mb-6 text-left">
           <SheetTitle>Metas deste Mês</SheetTitle>
         </SheetHeader>
@@ -588,7 +618,7 @@ function IncomeCategoriesSheet() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger render={<ActionRow icon={<Briefcase size={18} />} label="Categorias de Receitas" />} />
-      <SheetContent side="bottom" className="h-[90vh] sm:h-[80vh] rounded-t-3xl p-6 flex flex-col">
+      <SheetContent side="bottom" className="max-h-[90vh] rounded-t-3xl p-6 flex flex-col">
         <SheetHeader className="mb-6 text-left shrink-0 border-b pb-4">
           <div className="flex items-center justify-between">
             <SheetTitle>Categorias de Receitas</SheetTitle>
@@ -648,7 +678,7 @@ function IncomeCategoriesSheet() {
             </Dialog>
           </div>
         </SheetHeader>
-        <div className="flex-1 overflow-y-auto space-y-3 pb-8">
+        <div className="flex-1 overflow-y-auto space-y-3 pb-4">
           {categories?.map(p => {
             const IconComponent = incomeCategoryIconMap[p.icon] || Briefcase;
             return (
@@ -715,12 +745,12 @@ function ExpenseCategoriesSheet() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger render={<ActionRow icon={<Tags size={18} />} label="Categorias de Despesas" />} />
-      <SheetContent side="bottom" className="h-[90dvh] sm:h-[85vh] rounded-t-3xl p-6 flex flex-col bg-background overflow-hidden w-full">
-        <SheetHeader className="mb-4 text-left shrink-0 pb-2">
+      <SheetContent side="bottom" className="max-h-[90vh] rounded-t-3xl p-6 flex flex-col bg-background">
+        <SheetHeader className="mb-6 text-left shrink-0 pb-2">
           <div className="flex items-center justify-between">
             <div className="min-w-0 flex-1 pr-4">
-              <SheetTitle className="text-xl truncate">Categorias</SheetTitle>
-              <p className="text-xs text-muted-foreground mt-1 truncate">Gerencie como você classifica seus gastos.</p>
+              <SheetTitle className="text-xl">Categorias</SheetTitle>
+              <p className="text-xs text-muted-foreground mt-1 leading-tight">Gerencie como você classifica seus gastos.</p>
             </div>
             <Button
               size="sm"
@@ -754,7 +784,7 @@ function ExpenseCategoriesSheet() {
                   </div>
                   <div className="space-y-2">
                     <Label>Ícone</Label>
-                    <div className="flex gap-2 flex-wrap h-40 overflow-y-auto p-2 border rounded-xl bg-card">
+                    <div className="flex gap-2 flex-wrap h-40 overflow-y-auto overflow-x-hidden p-2 border rounded-xl bg-card relative">
                       {Object.keys(categoryIconMap).map((iconKey) => {
                         const IconComponent = categoryIconMap[iconKey];
                         return (
@@ -776,11 +806,11 @@ function ExpenseCategoriesSheet() {
           </div>
         </SheetHeader>
         
-        <div className="flex-1 overflow-y-auto space-y-6 pb-12 w-full">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-4 pb-4 w-full">
           {/* Sugestões Rápidas */}
-          <div className="space-y-3 w-full max-w-full overflow-hidden">
+          <div className="space-y-3 w-full">
             <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Sugestões Rápidas</h4>
-            <div className="flex overflow-x-auto pb-4 pt-1 gap-3 hide-scrollbar snap-x w-full">
+            <div className="flex overflow-x-auto pb-2 pt-1 gap-2 w-full snap-x [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
               {predefinedCategories.map((cat, idx) => {
                 const IconComp = categoryIconMap[cat.icon] || Tags;
                 const exists = categories?.some(c => c.name.toLowerCase() === cat.name.toLowerCase());
@@ -788,13 +818,13 @@ function ExpenseCategoriesSheet() {
                   <div 
                     key={idx} 
                     onClick={() => !exists && handleAddPredefined(cat)}
-                    className={`snap-start shrink-0 w-28 p-3 rounded-2xl border transition-all ${exists ? 'opacity-50 grayscale cursor-not-allowed border-dashed bg-transparent' : 'bg-card shadow-sm cursor-pointer hover:border-primary/50 hover:shadow-md active:scale-95 flex flex-col items-center justify-center text-center gap-2'}`}
+                    className={`snap-start shrink-0 p-2 pr-3 rounded-xl border transition-all ${exists ? 'opacity-50 grayscale cursor-not-allowed border-dashed bg-transparent' : 'bg-card shadow-sm cursor-pointer hover:border-primary/50 hover:shadow-md active:scale-95 flex flex-row items-center justify-start text-left gap-2'}`}
                   >
-                    <div className="w-10 h-10 rounded-full shrink-0 flex items-center justify-center text-white shadow-sm" style={{ backgroundColor: cat.color }}>
-                      <IconComp size={18} />
+                    <div className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-white shadow-sm" style={{ backgroundColor: cat.color }}>
+                      <IconComp size={14} />
                     </div>
-                    <span className="text-xs font-semibold px-1 w-full truncate block">{cat.name}</span>
-                    {exists && <Check size={12} className="absolute top-2 right-2 text-muted-foreground" />}
+                    <span className="text-xs font-semibold">{cat.name}</span>
+                    {exists && <Check size={12} className="ml-1 text-muted-foreground" />}
                   </div>
                 )
               })}
@@ -813,17 +843,17 @@ function ExpenseCategoriesSheet() {
                     <div className="w-10 h-10 shrink-0 rounded-full flex items-center justify-center text-white shadow-sm" style={{ backgroundColor: c.color }}>
                       <IconComponent size={18} />
                     </div>
-                    <div className="flex flex-col min-w-0 flex-1 pr-2">
-                      <span className="font-semibold text-sm truncate w-full block">{c.name}</span>
+                    <div className="flex flex-col min-w-0 pr-2">
+                      <span className="font-semibold text-sm truncate block">{c.name}</span>
                     </div>
                   </div>
-                  <Button variant="ghost" size="icon" className="w-8 h-8 shrink-0 rounded-full text-red-500 opacity-80 hover:opacity-100 hover:bg-red-50" onClick={() => deleteCategory(c.id)}>
+                  <Button variant="ghost" size="icon" className="w-8 h-8 shrink-0 rounded-full text-red-500 opacity-80 hover:opacity-100 hover:bg-red-50 relative z-10" onClick={() => deleteCategory(c.id)}>
                     <Trash2 size={16} />
                   </Button>
                 </div>
               )})}
               {categories?.length === 0 && (
-                <div className="col-span-1 sm:col-span-2 border-dashed border-2 rounded-2xl p-8 flex flex-col items-center justify-center text-center text-muted-foreground gap-2 w-full">
+                <div className="col-span-1 border-dashed border-2 rounded-2xl p-8 flex flex-col items-center justify-center text-center text-muted-foreground gap-2 w-full">
                   <Tags size={24} className="opacity-20" />
                   <p className="text-sm">Você ainda não tem categorias de despesas.</p>
                 </div>

@@ -9,6 +9,7 @@ import { ptBR } from 'date-fns/locale';
 import { BarChart, Bar, ResponsiveContainer, Tooltip } from 'recharts';
 import { parseDateLocal } from '@/utils/date';
 import { Progress } from '@/components/ui/progress';
+import { motion } from 'motion/react';
 import { TransactionModal } from '@/components/shared/TransactionModal';
 import { getCategoryIcon } from '@/utils/icons';
 import { formatBRL, formatBRLCompact } from '@/utils/currency';
@@ -93,9 +94,14 @@ export default function Earnings() {
   }, [timeFilteredEarnings]);
 
   return (
-    <div className="p-4 space-y-6 pb-24 relative min-h-screen">
+    <div className="p-4 pt-8 space-y-8 pb-24 relative min-h-screen">
       {/* Filters */}
-      <div className="bg-card p-4 rounded-2xl border shadow-sm space-y-4 mb-6">
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2 }}
+        className="bg-card p-5 rounded-2xl border shadow-sm space-y-4 mb-6"
+      >
         {/* Date Filter */}
         <div className="flex gap-2 p-1 bg-muted/50 rounded-lg">
           {(['today', 'week', 'month'] as const).map((t) => (
@@ -134,10 +140,15 @@ export default function Earnings() {
             </Button>
           ))}
         </div>
-      </div>
+      </motion.div>
 
       {/* Total card */}
-      <div className="bg-card border rounded-2xl p-6 text-center shadow-sm relative overflow-hidden">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.2, delay: 0.05 }}
+        className="bg-card border rounded-2xl p-6 text-center shadow-sm relative overflow-hidden"
+      >
         <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2">
           Total {categoryFilter !== 'all' ? categories?.find(c => c.id === categoryFilter)?.name : 'Recebido'}
         </p>
@@ -158,11 +169,16 @@ export default function Earnings() {
             </div>
           </div>
         )}
-      </div>
+      </motion.div>
 
       {/* Category Breakdown */}
       {categoryFilter === 'all' && categoryBreakdown.length > 0 && (
-        <div className="space-y-3">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2, delay: 0.1 }}
+          className="space-y-3"
+        >
           <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Desempenho por Categoria</h3>
           <div className="grid grid-cols-2 gap-3">
             {categoryBreakdown.map(b => {
@@ -184,12 +200,17 @@ export default function Earnings() {
               );
             })}
           </div>
-        </div>
+        </motion.div>
       )}
 
       {/* Chart */}
       {chartData.length > 0 && (
-         <div className="h-40 w-full mt-4 bg-card rounded-2xl border p-4 shadow-sm">
+         <motion.div 
+           initial={{ opacity: 0, y: 20 }}
+           animate={{ opacity: 1, y: 0 }}
+           transition={{ duration: 0.2, delay: 0.15 }}
+           className="h-40 w-full mt-4 bg-card rounded-2xl border p-4 shadow-sm"
+         >
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
                 <Bar dataKey="total" fill="#3B82F6" radius={[4,4,0,0]} />
@@ -200,11 +221,16 @@ export default function Earnings() {
                 />
               </BarChart>
             </ResponsiveContainer>
-         </div>
+         </motion.div>
       )}
 
       {/* List */}
-      <div className="space-y-6 mt-6">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, delay: 0.2 }}
+        className="space-y-6 mt-6"
+      >
         {Object.entries(grouped).sort(([a], [b]) => b.localeCompare(a)).map(([date, items]) => (
           <div key={date}>
             <h3 className="text-sm font-bold text-muted-foreground mb-3 uppercase tracking-wider flex items-center gap-2 px-1">
@@ -219,7 +245,7 @@ export default function Earnings() {
                 
                 return (
                   <Card key={earning.id} className="shadow-none border-border hover:border-foreground/20 transition-colors cursor-pointer" onClick={() => handleOpenEdit(earning)}>
-                    <CardContent className="p-4 flex items-center justify-between">
+                    <CardContent className="p-5 flex items-center justify-between">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-inner bg-muted" style={{ color: category?.color }}>
                           <IconComponent size={18} />
@@ -250,15 +276,15 @@ export default function Earnings() {
             </div>
           </div>
         ))}
+      </motion.div>
 
-        {filteredEarnings.length === 0 && (
+      {filteredEarnings.length === 0 && (
           <EmptyState 
             icon={DollarSign} 
             title="Nenhuma receita" 
             description="Nenhuma receita registrada neste período." 
           />
         )}
-      </div>
 
       <Button onClick={handleOpenAdd} className="fixed bottom-20 right-4 w-14 h-14 rounded-full shadow-xl bg-emerald-500 hover:bg-emerald-600 text-white flex items-center justify-center z-[60] transition-transform active:scale-95">
         <Plus size={24} />

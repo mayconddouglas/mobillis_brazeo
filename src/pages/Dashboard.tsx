@@ -38,12 +38,12 @@ export default function Dashboard() {
   })).filter(d => d.value > 0) || [];
 
   return (
-    <div className="p-4 space-y-8 pb-24">
+    <div className="p-4 pt-8 space-y-6 pb-24">
       {/* Header */}
       <motion.header 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
+        transition={{ duration: 0.2 }}
         className="flex justify-between items-center"
       >
         <div>
@@ -58,7 +58,7 @@ export default function Dashboard() {
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.4, delay: 0.1 }}
+        transition={{ duration: 0.2, delay: 0.05 }}
       >
         <Card className="bg-card p-6 space-y-6">
           <div className="space-y-1">
@@ -92,10 +92,10 @@ export default function Dashboard() {
        <motion.div 
          initial={{ opacity: 0, y: 20 }}
          animate={{ opacity: 1, y: 0 }}
-         transition={{ duration: 0.4, delay: 0.2 }}
+         transition={{ duration: 0.2, delay: 0.1 }}
          className="grid grid-cols-2 gap-4"
        >
-         <Card className="p-4 flex items-center gap-4">
+         <Card className="p-5 flex items-center gap-4">
            <CardContent className="p-0 flex items-center gap-4">
              <div className="p-3 bg-emerald-500/10 text-emerald-600 rounded-2xl">
                <TrendingUp size={20} />
@@ -107,7 +107,7 @@ export default function Dashboard() {
            </CardContent>
          </Card>
          
-         <Card className="p-4 flex items-center gap-4">
+         <Card className="p-5 flex items-center gap-4">
            <CardContent className="p-0 flex items-center gap-4">
              <div className="p-3 bg-red-500/10 text-red-600 rounded-2xl">
                <Receipt size={20} />
@@ -123,13 +123,13 @@ export default function Dashboard() {
        <motion.div 
          initial={{ opacity: 0, y: 20 }}
          animate={{ opacity: 1, y: 0 }}
-         transition={{ duration: 0.4, delay: 0.3 }}
+         transition={{ duration: 0.2, delay: 0.15 }}
        >
          <h3 className="font-bold tracking-tight mb-4">Carteiras</h3>
          <div className="grid grid-cols-2 gap-4">
            {wallets?.map((wallet) => (
              <Card key={wallet.id}>
-               <CardContent className="p-4 flex items-center gap-3">
+               <CardContent className="p-5 flex items-center gap-3">
                  <div className="p-2 rounded-xl" style={{ backgroundColor: `${wallet.color}15`, color: wallet.color }}>
                    <Wallet size={18} />
                  </div>
@@ -147,7 +147,7 @@ export default function Dashboard() {
        <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.4 }}
+          transition={{ duration: 0.2, delay: 0.2 }}
        >
          <h3 className="font-bold tracking-tight mb-4">Receitas por Categoria</h3>
          <Card>
@@ -187,7 +187,7 @@ export default function Dashboard() {
        <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.5 }}
+          transition={{ duration: 0.2, delay: 0.25 }}
        >
          <InsightsSection />
        </motion.div>
