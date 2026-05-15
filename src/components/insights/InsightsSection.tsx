@@ -5,6 +5,7 @@ import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from 'recha
 import { isThisMonth, parseISO } from 'date-fns';
 import { PieChart as PieChartIcon } from 'lucide-react';
 import { EmptyState } from '@/components/shared/EmptyState';
+import { fromCents, toCents } from '@/utils/money';
 
 export function InsightsSection() {
   const { data: earnings } = useEarnings();
@@ -15,22 +16,22 @@ export function InsightsSection() {
     const thisMonthsEarnings = earnings?.filter(e => isThisMonth(parseISO(e.date))) || [];
     const thisMonthsExpenses = expenses?.filter(e => isThisMonth(parseISO(e.date))) || [];
 
-    const totalIncome = thisMonthsEarnings.reduce((acc, curr) => acc + curr.amount, 0);
-    const totalExpenses = thisMonthsExpenses.reduce((acc, curr) => acc + curr.amount, 0);
+    const totalIncomeCents = thisMonthsEarnings.reduce((acc, curr) => acc + toCents(curr.amount), 0);
+    const totalExpensesCents = thisMonthsExpenses.reduce((acc, curr) => acc + toCents(curr.amount), 0);
 
     const expensesByCategory = thisMonthsExpenses.reduce((acc, expense) => {
       const category = categories?.find(c => c.id === expense.category_id);
       const categoryName = category?.name || 'Sem categoria';
-      acc[categoryName] = (acc[categoryName] || 0) + expense.amount;
+      acc[categoryName] = fromCents(toCents(acc[categoryName] || 0) + toCents(expense.amount));
       return acc;
     }, {} as Record<string, number>);
 
     const pieData = Object.entries(expensesByCategory).map(([name, value]) => ({ name, value }));
 
     return {
-      totalIncome,
-      totalExpenses,
-      balance: totalIncome - totalExpenses,
+      totalIncome: fromCents(totalIncomeCents),
+      totalExpenses: fromCents(totalExpensesCents),
+      balance: fromCents(totalIncomeCents - totalExpensesCents),
       pieData
     };
   }, [earnings, expenses, categories]);

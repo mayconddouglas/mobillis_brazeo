@@ -97,13 +97,14 @@ export function TransactionModal({
 
   const transactionType = watch('transaction_type');
   const amountValue = watch('amount');
+  const defaultWalletId = wallets[0]?.id || '';
 
   useEffect(() => {
     if (open) {
       if (editingItem) {
         setValue('amount', editingItem.amount.toString().replace('.', ','));
         setValue('category_id', editingItem.category_id);
-        setValue('wallet_id', editingItem.wallet_id || (wallets[0]?.id || ''));
+        setValue('wallet_id', editingItem.wallet_id || defaultWalletId);
         setValue('date', editingItem.date);
         setValue('description', editingItem.description || '');
 
@@ -120,7 +121,7 @@ export function TransactionModal({
         reset({
           amount: '',
           category_id: '',
-          wallet_id: wallets[0]?.id || '',
+          wallet_id: defaultWalletId,
           date: format(new Date(), 'yyyy-MM-dd'),
           description: '',
           transaction_type: 'single',
@@ -129,7 +130,7 @@ export function TransactionModal({
         });
       }
     }
-  }, [open, editingItem, wallets, reset, setValue]);
+  }, [open, editingItem, defaultWalletId, reset, setValue]);
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Basic mask for BRL
@@ -161,7 +162,6 @@ export function TransactionModal({
           ...basePayload,
           date: data.date,
           is_recurring: data.transaction_type === 'recurring',
-          recurring_frequency: data.transaction_type === 'recurring' ? data.recurring_frequency : undefined,
           is_installment: data.transaction_type === 'installment',
           installment_total: data.transaction_type === 'installment' ? parseInt(data.installment_count || '0', 10) : undefined,
         };

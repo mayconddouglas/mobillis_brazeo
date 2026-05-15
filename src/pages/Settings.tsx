@@ -268,7 +268,7 @@ function ResetDataSheet() {
           await supabase.from('wallets').insert([{ 
             user_id: user.id, 
             name: 'Conta Corrente', 
-            balance: 0, 
+            base_balance: 0, 
             color: '#3b82f6', 
             icon: 'landmark' 
           }]);
@@ -458,7 +458,7 @@ function WalletsSheet() {
 
   const handleAdd = async () => {
     if (!newWallet.name) return;
-    await addWallet({ ...newWallet, balance: 0 });
+    await addWallet({ ...newWallet, base_balance: 0 });
     setNewWallet({ name: '', color: '#3B82F6', icon: 'landmark', type: 'checking' });
     setIsAddOpen(false);
   };

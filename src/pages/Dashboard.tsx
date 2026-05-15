@@ -10,6 +10,7 @@ import { DollarSign, Receipt, TrendingUp, Package, Wallet } from 'lucide-react';
 import { PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { InsightsSection } from '../components/insights/InsightsSection';
 import { formatBRL } from '@/utils/currency';
+import { fromCents, toCents } from '@/utils/money';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -20,9 +21,13 @@ export default function Dashboard() {
   const { data: goals } = useGoals(new Date().getMonth() + 1, new Date().getFullYear());
   const { data: categories } = useIncomeCategories();
 
-  const totalEarnings = earnings?.reduce((acc, curr) => acc + curr.amount, 0) || 0;
-  const totalExpenses = expenses?.filter(e => isThisMonth(new Date(e.date + 'T12:00:00'))).reduce((acc, curr) => acc + curr.amount, 0) || 0;
-  const totalBalance = wallets?.reduce((acc, curr) => acc + curr.balance, 0) || 0;
+  const totalEarnings = fromCents(earnings?.reduce((acc, curr) => acc + toCents(curr.amount), 0) || 0);
+  const totalExpenses = fromCents(
+    expenses
+      ?.filter(e => isThisMonth(new Date(e.date + 'T12:00:00')))
+      .reduce((acc, curr) => acc + toCents(curr.amount), 0) || 0
+  );
+  const totalBalance = fromCents(wallets?.reduce((acc, curr) => acc + toCents(curr.balance), 0) || 0);
 
   const earningGoal = goals?.earning_goal || 3000;
   const expenseLimit = goals?.expense_limit || 1500;
@@ -33,7 +38,7 @@ export default function Dashboard() {
   // Mocks for charts
   const pieData = categories?.map(p => ({
     name: p.name,
-    value: earnings?.filter(e => e.category_id === p.id).reduce((acc, curr) => acc + curr.amount, 0) || 0,
+    value: fromCents(earnings?.filter(e => e.category_id === p.id).reduce((acc, curr) => acc + toCents(curr.amount), 0) || 0),
     color: p.color
   })).filter(d => d.value > 0) || [];
 

@@ -77,7 +77,6 @@ export function useExpenses() {
         return;
       }
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
-      queryClient.invalidateQueries({ queryKey: ['wallets'] });
     },
   });
 
@@ -98,7 +97,6 @@ export function useExpenses() {
         return;
       }
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
-      queryClient.invalidateQueries({ queryKey: ['wallets'] });
     },
   });
 
@@ -119,7 +117,6 @@ export function useExpenses() {
         return;
       }
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
-      queryClient.invalidateQueries({ queryKey: ['wallets'] });
     },
   });
 
@@ -152,7 +149,6 @@ export function useExpenses() {
         return;
       }
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
-      queryClient.invalidateQueries({ queryKey: ['wallets'] });
     },
   });
 

@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS public.wallets (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   name TEXT NOT NULL,
-  balance NUMERIC DEFAULT 0 NOT NULL,
+  base_balance NUMERIC DEFAULT 0 NOT NULL,
   color TEXT NOT NULL,
   icon TEXT NOT NULL,
   type TEXT DEFAULT 'checking', -- check, savings, credit
@@ -161,7 +161,7 @@ BEGIN
   (new.id, 'Investimentos', '#eab308', 'trending-up');
 
   -- 4. Criar primeira conta bancária (Conta Corrente)
-  INSERT INTO public.wallets (user_id, name, balance, color, icon) VALUES
+  INSERT INTO public.wallets (user_id, name, base_balance, color, icon) VALUES
   (new.id, 'Conta Corrente', 0, '#3b82f6', 'landmark');
 
   RETURN new;
@@ -177,83 +177,23 @@ CREATE TRIGGER on_auth_user_created
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- ========================================================
--- 9. TRIGGERS PARA ATUALIZAÇÃO AUTOMÁTICA DE SALDO NAS CARTEIRAS
+-- 9. VIEW DE SALDO DERIVADO (FONTE ÚNICA)
 -- ========================================================
-
--- Trigger para despesas (expenses)
-CREATE OR REPLACE FUNCTION public.trg_expense_wallet_balance()
-RETURNS TRIGGER AS $$
-BEGIN
-  IF TG_OP = 'INSERT' THEN
-    IF NEW.wallet_id IS NOT NULL THEN
-      UPDATE public.wallets SET balance = balance - NEW.amount WHERE id = NEW.wallet_id;
-    END IF;
-  ELSIF TG_OP = 'UPDATE' THEN
-    -- Se a carteira não mudou
-    IF OLD.wallet_id = NEW.wallet_id AND NEW.wallet_id IS NOT NULL THEN
-      UPDATE public.wallets SET balance = balance + OLD.amount - NEW.amount WHERE id = NEW.wallet_id;
-    ELSIF OLD.wallet_id IS DISTINCT FROM NEW.wallet_id THEN
-      IF OLD.wallet_id IS NOT NULL THEN
-        UPDATE public.wallets SET balance = balance + OLD.amount WHERE id = OLD.wallet_id;
-      END IF;
-      IF NEW.wallet_id IS NOT NULL THEN
-        UPDATE public.wallets SET balance = balance - NEW.amount WHERE id = NEW.wallet_id;
-      END IF;
-    END IF;
-  ELSIF TG_OP = 'DELETE' THEN
-    IF OLD.wallet_id IS NOT NULL THEN
-      UPDATE public.wallets SET balance = balance + OLD.amount WHERE id = OLD.wallet_id;
-    END IF;
-  END IF;
-  
-  IF TG_OP = 'DELETE' THEN
-    RETURN OLD;
-  END IF;
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-DROP TRIGGER IF EXISTS expense_wallet_balance_trigger ON public.expenses;
-
-CREATE TRIGGER expense_wallet_balance_trigger
-  AFTER INSERT OR UPDATE OR DELETE ON public.expenses
-  FOR EACH ROW EXECUTE FUNCTION public.trg_expense_wallet_balance();
-
--- Trigger para receitas (earnings)
-CREATE OR REPLACE FUNCTION public.trg_earning_wallet_balance()
-RETURNS TRIGGER AS $$
-BEGIN
-  IF TG_OP = 'INSERT' THEN
-    IF NEW.wallet_id IS NOT NULL THEN
-      UPDATE public.wallets SET balance = balance + NEW.amount WHERE id = NEW.wallet_id;
-    END IF;
-  ELSIF TG_OP = 'UPDATE' THEN
-    IF OLD.wallet_id = NEW.wallet_id AND NEW.wallet_id IS NOT NULL THEN
-      UPDATE public.wallets SET balance = balance - OLD.amount + NEW.amount WHERE id = NEW.wallet_id;
-    ELSIF OLD.wallet_id IS DISTINCT FROM NEW.wallet_id THEN
-      IF OLD.wallet_id IS NOT NULL THEN
-        UPDATE public.wallets SET balance = balance - OLD.amount WHERE id = OLD.wallet_id;
-      END IF;
-      IF NEW.wallet_id IS NOT NULL THEN
-        UPDATE public.wallets SET balance = balance + NEW.amount WHERE id = NEW.wallet_id;
-      END IF;
-    END IF;
-  ELSIF TG_OP = 'DELETE' THEN
-    IF OLD.wallet_id IS NOT NULL THEN
-      UPDATE public.wallets SET balance = balance - OLD.amount WHERE id = OLD.wallet_id;
-    END IF;
-  END IF;
-
-  IF TG_OP = 'DELETE' THEN
-    RETURN OLD;
-  END IF;
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-DROP TRIGGER IF EXISTS earning_wallet_balance_trigger ON public.earnings;
-
-CREATE TRIGGER earning_wallet_balance_trigger
-  AFTER INSERT OR UPDATE OR DELETE ON public.earnings
-  FOR EACH ROW EXECUTE FUNCTION public.trg_earning_wallet_balance();
-
+CREATE OR REPLACE VIEW public.wallets_with_balance AS
+SELECT
+  w.*,
+  (w.base_balance
+    + COALESCE(e.total_earnings, 0)
+    - COALESCE(x.total_expenses, 0)
+  )::NUMERIC AS balance
+FROM public.wallets w
+LEFT JOIN (
+  SELECT wallet_id, SUM(amount) AS total_earnings
+  FROM public.earnings
+  GROUP BY wallet_id
+) e ON e.wallet_id = w.id
+LEFT JOIN (
+  SELECT wallet_id, SUM(amount) AS total_expenses
+  FROM public.expenses
+  GROUP BY wallet_id
+) x ON x.wallet_id = w.id;

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useWallets, useExpenses, useExpenseCategories, useEarnings, Wallet } from '../hooks';
+import { useWallets, useExpenses, useExpenseCategories, useEarnings, useIncomeCategories, Wallet } from '../hooks';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, Wallet as WalletIcon, ArrowLeftRight, CreditCard, Landmark, Edit2, Trash2, Tag, PlusCircle } from 'lucide-react';
@@ -24,12 +24,15 @@ import {
 import { parseDateLocal } from '@/utils/date';
 import { formatBRL } from '@/utils/currency';
 import { motion } from 'motion/react';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Wallets() {
+  const { isDemo } = useAuth();
   const { data: wallets, addWallet, updateWallet, deleteWallet } = useWallets();
-  const { data: expenses, deleteExpense } = useExpenses();
-  const { data: earnings } = useEarnings();
-  const { data: categories } = useExpenseCategories();
+  const { data: expenses, addExpense, deleteExpense } = useExpenses();
+  const { data: earnings, addEarning } = useEarnings();
+  const { data: categories, addCategory: addExpenseCategory } = useExpenseCategories();
+  const { data: incomeCategories, addIncomeCategory } = useIncomeCategories();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingWallet, setEditingWallet] = useState<Wallet | null>(null);
@@ -42,10 +45,26 @@ export default function Wallets() {
 
   const [newWallet, setNewWallet] = useState({
     name: '',
-    balance: '',
+    base_balance: '',
     color: '#3B82F6',
     icon: 'banknote'
   });
+
+  const ensureIncomeCategoryId = async (name: string, defaults: { color: string; icon: string }) => {
+    const existing = incomeCategories?.find(c => c.name.toLowerCase() === name.toLowerCase());
+    if (existing?.id) return existing.id;
+    if (isDemo) return incomeCategories?.[0]?.id || '1';
+    const created = await addIncomeCategory({ name, ...defaults, is_active: true });
+    return created.id;
+  };
+
+  const ensureExpenseCategoryId = async (name: string, defaults: { color: string; icon: string }) => {
+    const existing = categories?.find(c => c.name.toLowerCase() === name.toLowerCase());
+    if (existing?.id) return existing.id;
+    if (isDemo) return categories?.[0]?.id || '1';
+    const created = await addExpenseCategory({ name, ...defaults });
+    return created.id;
+  };
 
   const handleSaveTransfer = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,15 +87,27 @@ export default function Wallets() {
       return;
     }
 
-    await updateWallet({
-      id: fromWallet.id,
-      balance: fromWallet.balance - amountNum
-    });
+    const date = format(new Date(), 'yyyy-MM-dd');
+    const expenseCategoryId = await ensureExpenseCategoryId('Transferência', { color: '#3b82f6', icon: 'tag' });
+    const incomeCategoryId = await ensureIncomeCategoryId('Transferência', { color: '#3b82f6', icon: 'credit-card' });
 
-    await updateWallet({
-      id: toWallet.id,
-      balance: toWallet.balance + amountNum
-    });
+    await addExpense({
+      amount: amountNum,
+      wallet_id: fromWallet.id,
+      category_id: expenseCategoryId,
+      description: `Transferência para ${toWallet.name}`,
+      date,
+      is_recurring: false,
+    } as any);
+
+    await addEarning({
+      amount: amountNum,
+      wallet_id: toWallet.id,
+      category_id: incomeCategoryId,
+      description: `Transferência de ${fromWallet.name}`,
+      date,
+      is_recurring: false,
+    } as any);
 
     setIsTransferModalOpen(false);
     setTransferData({ from_wallet_id: '', to_wallet_id: '', amount: '' });
@@ -92,10 +123,17 @@ export default function Wallets() {
     const amountNum = parseFloat(depositData.amount.toString().replace(',', '.'));
     if (isNaN(amountNum) || amountNum <= 0) return;
 
-    await updateWallet({
-      id: wallet.id,
-      balance: wallet.balance + amountNum
-    });
+    const date = format(new Date(), 'yyyy-MM-dd');
+    const incomeCategoryId = await ensureIncomeCategoryId('Ajuste', { color: '#22c55e', icon: 'dollar-sign' });
+
+    await addEarning({
+      amount: amountNum,
+      wallet_id: wallet.id,
+      category_id: incomeCategoryId,
+      description: 'Ajuste de saldo',
+      date,
+      is_recurring: false,
+    } as any);
 
     setIsDepositModalOpen(false);
     setDepositData({ wallet_id: '', amount: '' });
@@ -105,7 +143,7 @@ export default function Wallets() {
     setEditingWallet(null);
     setNewWallet({
       name: '',
-      balance: '',
+      base_balance: '',
       color: '#3B82F6',
       icon: 'banknote'
     });
@@ -116,7 +154,7 @@ export default function Wallets() {
     setEditingWallet(wallet);
     setNewWallet({
       name: wallet.name,
-      balance: wallet.balance.toString(),
+      base_balance: (wallet.base_balance ?? 0).toString(),
       color: wallet.color,
       icon: wallet.icon
     });
@@ -125,11 +163,11 @@ export default function Wallets() {
 
   const handleSaveWallet = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newWallet.name || !newWallet.balance) return;
+    if (!newWallet.name || !newWallet.base_balance) return;
 
     const dataPayload = {
       name: newWallet.name,
-      balance: parseFloat(newWallet.balance.toString().replace(',', '.')),
+      base_balance: parseFloat(newWallet.base_balance.toString().replace(',', '.')),
       color: newWallet.color,
       icon: newWallet.icon
     };
@@ -146,14 +184,6 @@ export default function Wallets() {
   const handleDelete = async (id: string) => {
     await deleteWallet(id);
     setIsModalOpen(false);
-  };
-
-  const handleDeleteExpense = async (id: string, amount: number, wallet_id: string) => {
-    await deleteExpense(id);
-    const wallet = wallets?.find((w: Wallet) => w.id === wallet_id);
-    if (wallet) {
-      await updateWallet({ id: wallet.id, balance: wallet.balance + amount });
-    }
   };
 
   const recentMovements = useMemo(() => {
@@ -326,14 +356,14 @@ export default function Wallets() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="balance">Saldo Atual (R$)</Label>
+              <Label htmlFor="base_balance">Saldo Inicial (R$)</Label>
               <Input 
-                id="balance" 
+                id="base_balance" 
                 type="number" 
                 step="0.01"
                 required
-                value={newWallet.balance}
-                onChange={(e) => setNewWallet({...newWallet, balance: e.target.value})}
+                value={newWallet.base_balance}
+                onChange={(e) => setNewWallet({...newWallet, base_balance: e.target.value})}
                 className="h-12 text-lg font-mono"
               />
             </div>

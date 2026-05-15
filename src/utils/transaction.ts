@@ -45,7 +45,6 @@ export function buildRecurringPayloads<T extends BaseTransaction>(
       ...base,
       date: nextDate.toISOString().split('T')[0],
       is_recurring: true,
-      recurring_frequency: frequency,
     });
   }
   return payloads;
