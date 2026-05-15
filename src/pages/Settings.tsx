@@ -210,18 +210,40 @@ function ExportSheet() {
 }
 
 function ResetDataSheet() {
-  const { user } = useAuth();
+  const { user, isDemo } = useAuth();
   const [isResetting, setIsResetting] = useState(false);
   
   const handleReset = async () => {
     if (!window.confirm("Atenção! Você perderá sua carteira, receitas, gastos e metas. Esta ação é irreversível. Deseja ZERAR sua conta?")) return;
     try {
       setIsResetting(true);
-      const { error } = await supabase.rpc('reset_financial_data');
-      if (error) throw error;
+      
+      if (isDemo) {
+        for (let i = localStorage.length - 1; i >= 0; i--) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('demo_')) {
+                localStorage.removeItem(key);
+            }
+        }
+      } else {
+        if (user?.id) {
+          await supabase.from('earnings').delete().eq('user_id', user.id);
+          await supabase.from('expenses').delete().eq('user_id', user.id);
+          await supabase.from('monthly_goals').delete().eq('user_id', user.id);
+          await supabase.from('wallets').delete().eq('user_id', user.id);
+          
+          await supabase.from('wallets').insert([{ 
+            user_id: user.id, 
+            name: 'Conta Corrente', 
+            balance: 0, 
+            color: '#3b82f6', 
+            icon: 'landmark' 
+          }]);
+        }
+      }
       
       alert("A conta foi zerada com sucesso!");
-      window.location.reload(); // Reload the application to reset state uniformly
+      window.location.reload(); 
     } catch (e) {
       console.error(e);
       alert("Erro ao zerar dados.");
