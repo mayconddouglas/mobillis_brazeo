@@ -29,6 +29,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isDemo = !isSetup;
 
   useEffect(() => {
+    // Security feature: auto-logout when app is hidden (switched to another screen/tab/minimized)
+    let timeoutId: NodeJS.Timeout;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden' && user && !isDemo) {
+        // Log out after 2 minutes of being hidden
+        timeoutId = setTimeout(() => {
+          supabase.auth.signOut();
+        }, 2 * 60 * 1000);
+      } else {
+        // Clear the timeout if they come back before 2 minutes
+        clearTimeout(timeoutId);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      clearTimeout(timeoutId);
+    };
+  }, [user, isDemo]);
+
+  useEffect(() => {
     if (isDemo) {
       // Mock mode so UI can be visualized without Supabase configured
       setUser({ id: 'demo-user-123', email: 'demo@routefinance.app', user_metadata: { name: 'Maycon' } } as unknown as User);
@@ -54,10 +77,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     if (isDemo) {
       setUser(null);
+      // Notify other tabs in demo mode too
+      const channel = new BroadcastChannel('auth_sync');
+      channel.postMessage('sign_out');
+      channel.close();
       return;
     }
     await supabase.auth.signOut();
+    const channel = new BroadcastChannel('auth_sync');
+    channel.postMessage('sign_out');
+    channel.close();
   };
+
+  useEffect(() => {
+    // Cross-tab synchronization strictly for logout
+    const channel = new BroadcastChannel('auth_sync');
+    channel.onmessage = (event) => {
+      if (event.data === 'sign_out') {
+        if (isDemo) {
+          setUser(null);
+        } else {
+          supabase.auth.signOut();
+        }
+      }
+    };
+    return () => {
+      channel.close();
+    };
+  }, [isDemo]);
 
   const deleteAccount = async () => {
     if (isDemo) {
