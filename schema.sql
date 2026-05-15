@@ -7,6 +7,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TABLE IF NOT EXISTS public.profiles (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL PRIMARY KEY,
   name TEXT,
+  avatar_url TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -133,6 +134,15 @@ ALTER TABLE public.expenses ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Usuários podem gerenciar seus gastos" 
 ON public.expenses FOR ALL USING (auth.uid() = user_id);
+
+-- ========================================================
+-- 7.1 ÍNDICES (PERFORMANCE)
+-- ========================================================
+CREATE INDEX IF NOT EXISTS idx_wallets_user ON public.wallets(user_id);
+CREATE INDEX IF NOT EXISTS idx_earnings_user_date ON public.earnings(user_id, date DESC);
+CREATE INDEX IF NOT EXISTS idx_expenses_user_date ON public.expenses(user_id, date DESC);
+CREATE INDEX IF NOT EXISTS idx_earnings_wallet ON public.earnings(wallet_id);
+CREATE INDEX IF NOT EXISTS idx_expenses_wallet ON public.expenses(wallet_id);
 
 -- ========================================================
 -- 8. TRIGGER PARA DADOS PADRÃO DE NOVOS USUÁRIOS
