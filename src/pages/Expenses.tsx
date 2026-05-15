@@ -36,53 +36,17 @@ export default function Expenses() {
     if (editingExpense) {
       const payload = payloads[0];
       await updateExpense(payload);
-      
-      // Update wallet balance for edit
-      if (editingExpense.wallet_id === payload.wallet_id) {
-        const difference = payload.amount - editingExpense.amount;
-        if (difference !== 0) {
-          const wallet = wallets?.find(w => w.id === payload.wallet_id);
-          if (wallet) {
-            await updateWallet({ id: wallet.id, balance: wallet.balance - difference });
-          }
-        }
-      } else {
-        const oldWallet = wallets?.find(w => w.id === editingExpense.wallet_id);
-        if (oldWallet) {
-          await updateWallet({ id: oldWallet.id, balance: oldWallet.balance + editingExpense.amount });
-        }
-        const newWallet = wallets?.find(w => w.id === payload.wallet_id);
-        if (newWallet) {
-          await updateWallet({ id: newWallet.id, balance: newWallet.balance - payload.amount });
-        }
-      }
     } else {
       if (addMultipleExpenses && payloads.length > 1) {
         await addMultipleExpenses(payloads);
       } else {
         await addExpense(payloads[0]);
       }
-      
-      // Deduct from wallet
-      const totalDeductionFromWallet = payloads[0].amount;
-      const wallet = wallets?.find(w => w.id === payloads[0].wallet_id);
-      if (wallet) {
-        await updateWallet({ id: wallet.id, balance: wallet.balance - totalDeductionFromWallet });
-      }
     }
   };
 
   const handleDelete = async (id: string) => {
-    const expenseToDelete = expenses?.find(e => e.id === id);
     await deleteExpense(id);
-    
-    // Refund wallet
-    if (expenseToDelete) {
-      const wallet = wallets?.find(w => w.id === expenseToDelete.wallet_id);
-      if (wallet) {
-        await updateWallet({ id: wallet.id, balance: wallet.balance + expenseToDelete.amount });
-      }
-    }
   };
 
   const timeFilteredExpenses = expenses?.filter(e => {
