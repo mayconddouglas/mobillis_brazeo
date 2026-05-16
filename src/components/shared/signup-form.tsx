@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -11,6 +11,7 @@ import { motion } from "motion/react"
 import { supabase } from "@/lib/supabase"
 import { useAuth } from "@/contexts/AuthContext"
 import { cn } from "@/lib/utils"
+import { getAuthErrorMessage } from "@/utils/authErrors"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -29,15 +30,6 @@ const signupSchema = z.object({
 })
 
 type SignupValues = z.infer<typeof signupSchema>
-
-function mapSupabaseError(message?: string) {
-  const msg = (message || "").toLowerCase()
-  if (msg.includes("user already registered")) return "Esse e-mail já está cadastrado. Tente fazer login."
-  if (msg.includes("invalid login credentials")) return "E-mail ou senha incorretos."
-  if (msg.includes("email not confirmed")) return "Confirme seu e-mail antes de entrar."
-  if (msg.includes("password should be at least")) return "A senha precisa ter pelo menos 8 caracteres."
-  return "Algo deu errado. Tente novamente."
-}
 
 function Spinner() {
   return (
@@ -67,10 +59,12 @@ export function SignupForm({
   ...props
 }: React.ComponentProps<typeof Card>) {
   const { isDemo } = useAuth()
+  const navigate = useNavigate()
   const redirectTo =
     import.meta.env.VITE_SITE_URL?.toString() || window.location.origin
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
+  const [emailAlreadyRegistered, setEmailAlreadyRegistered] = React.useState(false)
   const [signedUpEmail, setSignedUpEmail] = React.useState<string | null>(null)
   const [showPassword, setShowPassword] = React.useState(false)
 
@@ -96,6 +90,7 @@ export function SignupForm({
   const onSubmit = handleSubmit(async (values) => {
     setLoading(true)
     setError(null)
+    setEmailAlreadyRegistered(false)
     try {
       if (isDemo) {
         setError("Modo demo ativo: configure o Supabase para criar conta.")
@@ -118,7 +113,12 @@ export function SignupForm({
       setSignedUpEmail(values.email)
       reset({ ...values, password: "" })
     } catch (err: any) {
-      setError(mapSupabaseError(err?.message))
+      const rawMessage = String(err?.message ?? err?.error_description ?? "")
+      const isAlready = rawMessage.toLowerCase().includes("user already registered")
+      setEmailAlreadyRegistered(isAlready)
+      if (!isAlready) {
+        setError(getAuthErrorMessage(err))
+      }
     } finally {
       setLoading(false)
     }
@@ -138,6 +138,22 @@ export function SignupForm({
               <AlertDescription>
                 Enviamos um link de confirmação para{" "}
                 <span className="font-medium">{signedUpEmail}</span>.
+              </AlertDescription>
+            </Alert>
+          )}
+          {emailAlreadyRegistered && (
+            <Alert className="border-blue-500/50 bg-blue-500/5">
+              <AlertTitle className="text-blue-700 dark:text-blue-300">Esse e-mail já tem uma conta</AlertTitle>
+              <AlertDescription className="text-blue-700/80 dark:text-blue-300/80">
+                Tente entrar com sua senha ou recupere o acesso.
+                <div className="mt-3 flex gap-2">
+                  <Button type="button" variant="outline" onClick={() => navigate("/login")} className="flex-1">
+                    Fazer login
+                  </Button>
+                  <Button type="button" variant="outline" onClick={() => navigate("/esqueci-senha")} className="flex-1">
+                    Esqueci minha senha
+                  </Button>
+                </div>
               </AlertDescription>
             </Alert>
           )}

@@ -11,6 +11,7 @@ import { motion } from "motion/react"
 import { supabase } from "@/lib/supabase"
 import { useAuth } from "@/contexts/AuthContext"
 import { cn } from "@/lib/utils"
+import { getAuthErrorMessage } from "@/utils/authErrors"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -27,14 +28,6 @@ const loginSchema = z.object({
 })
 
 type LoginValues = z.infer<typeof loginSchema>
-
-function mapSupabaseError(message?: string) {
-  const msg = (message || "").toLowerCase()
-  if (msg.includes("invalid login credentials")) return "E-mail ou senha incorretos."
-  if (msg.includes("email not confirmed")) return "Confirme seu e-mail antes de entrar."
-  if (msg.includes("password should be at least")) return "A senha precisa ter pelo menos 8 caracteres."
-  return "Algo deu errado. Tente novamente."
-}
 
 function Spinner() {
   return (
@@ -90,7 +83,7 @@ export function LoginForm({
       if (error) throw error
       reset({ ...values, password: "" })
     } catch (err: any) {
-      setError(mapSupabaseError(err?.message))
+      setError(getAuthErrorMessage(err))
     } finally {
       setLoading(false)
     }
