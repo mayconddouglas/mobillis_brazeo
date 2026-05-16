@@ -46,7 +46,7 @@ export function SignupForm({
         email,
         password,
         options: {
-          data: { name: trimmedName },
+          data: { name: trimmedName, full_name: trimmedName },
           emailRedirectTo: redirectTo,
         },
       })
