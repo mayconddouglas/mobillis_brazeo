@@ -2,6 +2,11 @@
 
 import * as React from "react"
 import { Link } from "react-router-dom"
+import { useForm } from "react-hook-form"
+import { z } from "zod"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { Eye, EyeOff } from "lucide-react"
+import { motion } from "motion/react"
 
 import { supabase } from "@/lib/supabase"
 import { useAuth } from "@/contexts/AuthContext"
@@ -11,6 +16,51 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { Progress } from "@/components/ui/progress"
+
+const signupSchema = z.object({
+  name: z.string().min(2, "O nome precisa ter pelo menos 2 caracteres."),
+  email: z.string().email("Informe um e-mail válido."),
+  password: z
+    .string()
+    .min(8, "A senha precisa ter pelo menos 8 caracteres.")
+    .regex(/[0-9]/, "A senha precisa ter pelo menos 1 número.")
+    .regex(/[A-Z]/, "A senha precisa ter pelo menos 1 letra maiúscula."),
+})
+
+type SignupValues = z.infer<typeof signupSchema>
+
+function mapSupabaseError(message?: string) {
+  const msg = (message || "").toLowerCase()
+  if (msg.includes("user already registered")) return "Esse e-mail já está cadastrado. Tente fazer login."
+  if (msg.includes("invalid login credentials")) return "E-mail ou senha incorretos."
+  if (msg.includes("email not confirmed")) return "Confirme seu e-mail antes de entrar."
+  if (msg.includes("password should be at least")) return "A senha precisa ter pelo menos 8 caracteres."
+  return "Algo deu errado. Tente novamente."
+}
+
+function Spinner() {
+  return (
+    <motion.div
+      className="h-4 w-4 rounded-full border-2 border-current border-t-transparent"
+      animate={{ rotate: 360 }}
+      transition={{ duration: 0.8, ease: "linear", repeat: Infinity }}
+    />
+  )
+}
+
+function getPasswordStrength(password: string) {
+  const hasMinLen = password.length >= 8
+  const hasNumber = /[0-9]/.test(password)
+  const hasUpper = /[A-Z]/.test(password)
+  const hasSpecial = /[^A-Za-z0-9]/.test(password)
+  const score = [hasMinLen, hasNumber, hasUpper, hasSpecial].filter(Boolean).length
+
+  if (score <= 1) return { label: "Fraca", value: 25, indicatorClassName: "bg-red-500" }
+  if (score === 2) return { label: "Razoável", value: 50, indicatorClassName: "bg-orange-500" }
+  if (score === 3) return { label: "Boa", value: 75, indicatorClassName: "bg-yellow-500" }
+  return { label: "Forte", value: 100, indicatorClassName: "bg-green-500" }
+}
 
 export function SignupForm({
   className,
@@ -19,15 +69,31 @@ export function SignupForm({
   const { isDemo } = useAuth()
   const redirectTo =
     import.meta.env.VITE_SITE_URL?.toString() || window.location.origin
-  const [name, setName] = React.useState("")
-  const [email, setEmail] = React.useState("")
-  const [password, setPassword] = React.useState("")
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [signedUpEmail, setSignedUpEmail] = React.useState<string | null>(null)
+  const [showPassword, setShowPassword] = React.useState(false)
 
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors, isValid },
+    reset,
+  } = useForm<SignupValues>({
+    resolver: zodResolver(signupSchema),
+    mode: "onChange",
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+    },
+  })
+
+  const passwordValue = watch("password") || ""
+  const strength = React.useMemo(() => getPasswordStrength(passwordValue), [passwordValue])
+
+  const onSubmit = handleSubmit(async (values) => {
     setLoading(true)
     setError(null)
     try {
@@ -36,15 +102,11 @@ export function SignupForm({
         return
       }
 
-      const trimmedName = name.trim()
-      if (!trimmedName) {
-        setError("Informe seu nome.")
-        return
-      }
+      const trimmedName = values.name.trim()
 
       const { error } = await supabase.auth.signUp({
-        email,
-        password,
+        email: values.email,
+        password: values.password,
         options: {
           data: { name: trimmedName, full_name: trimmedName },
           emailRedirectTo: redirectTo,
@@ -53,14 +115,14 @@ export function SignupForm({
 
       if (error) throw error
 
-      setSignedUpEmail(email)
-      setPassword("")
+      setSignedUpEmail(values.email)
+      reset({ ...values, password: "" })
     } catch (err: any) {
-      setError(err?.message || "Não foi possível criar sua conta.")
+      setError(mapSupabaseError(err?.message))
     } finally {
       setLoading(false)
     }
-  }
+  })
 
   return (
     <Card className={cn(className)} {...props}>
@@ -92,14 +154,15 @@ export function SignupForm({
                 id="name"
                 type="text"
                 placeholder="Seu nome"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
                 autoComplete="name"
+                {...register("name")}
               />
               <FieldDescription>
                 Esse nome aparece no dashboard.
               </FieldDescription>
+              {errors.name?.message && (
+                <p className="text-xs text-destructive">{errors.name.message}</p>
+              )}
             </Field>
             <Field>
               <FieldLabel htmlFor="email">E-mail</FieldLabel>
@@ -107,27 +170,50 @@ export function SignupForm({
                 id="email"
                 type="email"
                 placeholder="voce@exemplo.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
                 autoComplete="email"
                 inputMode="email"
+                {...register("email")}
               />
+              {errors.email?.message && (
+                <p className="text-xs text-destructive">{errors.email.message}</p>
+              )}
             </Field>
             <Field>
               <FieldLabel htmlFor="password">Senha</FieldLabel>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete="new-password"
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="new-password"
+                  className="pr-10"
+                  {...register("password")}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>Força da senha</span>
+                  <span className={strength.label === "Forte" ? "text-green-500" : undefined}>{strength.label}</span>
+                </div>
+                <Progress value={strength.value} indicatorClassName={strength.indicatorClassName} />
+              </div>
+              {errors.password?.message && (
+                <p className="text-xs text-destructive">{errors.password.message}</p>
+              )}
             </Field>
             <Field>
-              <Button type="submit" disabled={loading || isDemo}>
-                {loading ? "Criando..." : "Criar conta"}
+              <Button type="submit" disabled={!isValid || loading || isDemo} className={loading ? "opacity-90" : undefined}>
+                <span className="inline-flex items-center gap-2">
+                  {loading && <Spinner />}
+                  {loading ? "Criando..." : "Criar conta"}
+                </span>
               </Button>
               <div className="text-center text-xs text-muted-foreground">
                 Já tem conta?{" "}
