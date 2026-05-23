@@ -48,10 +48,14 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { motion } from 'motion/react';
+import { useSubscription } from '@/hooks/useSubscription';
+import { PlanBadge } from '@/components/shared/plan-badge';
+import { SubscriptionSheet } from '@/components/shared/subscription-sheet';
 
 export default function Settings() {
   const { user, signOut, isDemo } = useAuth();
   const { data: profile } = useProfile();
+  const { subscription, trialDaysLeft } = useSubscription();
   const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
   const month = new Date().getMonth() + 1;
   const year = new Date().getFullYear();
@@ -84,8 +88,13 @@ export default function Settings() {
       >
         <Card className="bg-gradient-to-br from-primary/5 to-primary/10 shadow-sm border-0">
           <CardContent className="p-5 flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center shrink-0 border border-primary/20 overflow-hidden">
-              <img src={profile?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${user?.id}`} className="w-16 h-16 object-cover" />
+            <div className="relative shrink-0">
+              <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center border border-primary/20 overflow-hidden">
+                <img src={profile?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${user?.id}`} className="w-16 h-16 object-cover" />
+              </div>
+              <div className="absolute -bottom-1.5 -right-1.5">
+                <PlanBadge plan={subscription?.plan ?? 'free'} trialDaysLeft={trialDaysLeft} />
+              </div>
             </div>
             <div className="flex-1">
               <h2 className="font-bold text-lg">{profile?.name || user?.user_metadata?.name || 'Usuário'}</h2>
@@ -132,6 +141,7 @@ export default function Settings() {
           <IncomeCategoriesSheet />
           <ExpenseCategoriesSheet />
           <MonthlyGoalsSheet month={month} year={year} />
+          <SubscriptionSheet />
           <ResetDataSheet />
         </div>
       </motion.div>

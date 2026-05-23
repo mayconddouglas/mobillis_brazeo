@@ -11,6 +11,8 @@ import { PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, Tooltip, Responsive
 import { InsightsSection } from '../components/insights/InsightsSection';
 import { formatBRL } from '@/utils/currency';
 import { fromCents, toCents } from '@/utils/money';
+import { useSubscription } from '@/hooks/useSubscription';
+import { PlanBadge } from '@/components/shared/plan-badge';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -20,6 +22,7 @@ export default function Dashboard() {
   const { data: wallets } = useWallets();
   const { data: goals } = useGoals(new Date().getMonth() + 1, new Date().getFullYear());
   const { data: categories } = useIncomeCategories();
+  const { subscription, trialDaysLeft } = useSubscription();
 
   const totalEarnings = fromCents(earnings?.reduce((acc, curr) => acc + toCents(curr.amount), 0) || 0);
   const totalExpenses = fromCents(
@@ -55,8 +58,13 @@ export default function Dashboard() {
           <h1 className="text-2xl font-bold text-foreground">Olá, {user?.user_metadata?.name?.split(' ')[0] || 'pessoa'}.</h1>
           <p className="text-muted-foreground text-sm">{format(new Date(), "MMMM 'de' yyyy", { locale: ptBR })}</p>
         </div>
-        <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center overflow-hidden">
-           <img src={profile?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${user?.id}`} className="w-10 h-10 object-cover" />
+        <div className="relative w-10 h-10">
+          <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center overflow-hidden">
+            <img src={profile?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${user?.id}`} className="w-10 h-10 object-cover" />
+          </div>
+          <div className="absolute -bottom-1.5 -right-1.5">
+            <PlanBadge plan={subscription?.plan ?? 'free'} trialDaysLeft={trialDaysLeft} />
+          </div>
         </div>
       </motion.header>
 
