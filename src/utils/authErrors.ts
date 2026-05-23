@@ -21,6 +21,10 @@ export function getAuthErrorMessage(error: any): string {
   if (msg.includes("signup is disabled")) return "Novos cadastros estão temporariamente desativados."
   if (msg.includes("email link is invalid") || msg.includes("has expired"))
     return "O link expirou ou já foi utilizado. Solicite um novo."
+  if (msg.includes("same password"))
+    return "A nova senha não pode ser igual à senha atual."
+  if (msg.includes("auth session missing"))
+    return "Sessão inválida. Solicite um novo link de redefinição."
 
   return "Algo deu errado. Tente novamente em instantes."
 }

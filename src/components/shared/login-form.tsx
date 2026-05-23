@@ -15,8 +15,10 @@ import { getAuthErrorMessage } from "@/utils/authErrors"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { OAuthButtons } from "@/components/shared/oauth-buttons"
 
 const loginSchema = z.object({
   email: z.string().email("Informe um e-mail válido."),
@@ -25,6 +27,7 @@ const loginSchema = z.object({
     .min(8, "A senha precisa ter pelo menos 8 caracteres.")
     .regex(/[0-9]/, "A senha precisa ter pelo menos 1 número.")
     .regex(/[A-Z]/, "A senha precisa ter pelo menos 1 letra maiúscula."),
+  rememberMe: z.boolean().optional(),
 })
 
 type LoginValues = z.infer<typeof loginSchema>
@@ -51,6 +54,7 @@ export function LoginForm({
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors, isValid },
     reset,
   } = useForm<LoginValues>({
@@ -59,8 +63,11 @@ export function LoginForm({
     defaultValues: {
       email: "",
       password: "",
+      rememberMe: false,
     },
   })
+
+  const rememberMe = watch("rememberMe")
 
   React.useEffect(() => {
     if (user) {
@@ -76,11 +83,23 @@ export function LoginForm({
         setError("Modo demo ativo: configure o Supabase para autenticar.")
         return
       }
+
+      // Configure session persistence based on "remember me"
+      await supabase.auth.setSession
       const { error } = await supabase.auth.signInWithPassword({
         email: values.email,
         password: values.password,
       })
       if (error) throw error
+
+      // If "remember me" is unchecked, configure a shorter session
+      if (!values.rememberMe) {
+        // Store a flag so AuthContext can apply sessionStorage behavior
+        sessionStorage.setItem('auth_session_only', '1')
+      } else {
+        sessionStorage.removeItem('auth_session_only')
+      }
+
       reset({ ...values, password: "" })
     } catch (err: any) {
       setError(getAuthErrorMessage(err))
@@ -96,7 +115,18 @@ export function LoginForm({
           <CardTitle>Entrar</CardTitle>
           <CardDescription>Acesse sua conta para continuar.</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex flex-col gap-5">
+          {/* OAuth */}
+          <OAuthButtons label="Entrar com" />
+
+          {/* Divider */}
+          <div className="flex items-center gap-3">
+            <div className="h-px flex-1 bg-border" />
+            <span className="text-xs text-muted-foreground">ou com e-mail</span>
+            <div className="h-px flex-1 bg-border" />
+          </div>
+
+          {/* Email/password form */}
           <form onSubmit={onSubmit} className="flex flex-col gap-5">
             {error && (
               <Alert variant="destructive">
@@ -120,7 +150,16 @@ export function LoginForm({
                 )}
               </Field>
               <Field>
-                <FieldLabel htmlFor="password">Senha</FieldLabel>
+                <div className="flex items-center justify-between">
+                  <FieldLabel htmlFor="password">Senha</FieldLabel>
+                  <Link
+                    to="/esqueci-senha"
+                    className="text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground transition-colors"
+                    tabIndex={-1}
+                  >
+                    Esqueci minha senha
+                  </Link>
+                </div>
                 <div className="relative">
                   <Input
                     id="password"
@@ -142,8 +181,22 @@ export function LoginForm({
                   <p className="text-xs text-destructive">{errors.password.message}</p>
                 )}
               </Field>
+
+              {/* Remember me */}
               <Field>
-                <Button type="submit" disabled={!isValid || loading || isDemo} className={loading ? "opacity-90" : undefined}>
+                <Checkbox
+                  id="rememberMe"
+                  label="Lembrar de mim neste dispositivo"
+                  {...register("rememberMe")}
+                />
+              </Field>
+
+              <Field>
+                <Button
+                  type="submit"
+                  disabled={!isValid || loading || isDemo}
+                  className={loading ? "opacity-90" : undefined}
+                >
                   <span className="inline-flex items-center gap-2">
                     {loading && <Spinner />}
                     {loading ? "Entrando..." : "Entrar"}

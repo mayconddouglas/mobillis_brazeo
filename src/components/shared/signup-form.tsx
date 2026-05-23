@@ -18,6 +18,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Progress } from "@/components/ui/progress"
+import { OAuthButtons } from "@/components/shared/oauth-buttons"
 
 const signupSchema = z.object({
   name: z.string().min(2, "O nome precisa ter pelo menos 2 caracteres."),
@@ -130,7 +131,18 @@ export function SignupForm({
         <CardTitle>Criar conta</CardTitle>
         <CardDescription>Informe seus dados para começar.</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex flex-col gap-5">
+        {/* OAuth */}
+        <OAuthButtons label="Cadastrar com" />
+
+        {/* Divider */}
+        <div className="flex items-center gap-3">
+          <div className="h-px flex-1 bg-border" />
+          <span className="text-xs text-muted-foreground">ou com e-mail</span>
+          <div className="h-px flex-1 bg-border" />
+        </div>
+
+        {/* Form */}
         <form onSubmit={onSubmit} className="flex flex-col gap-5">
           {signedUpEmail && (
             <Alert>
