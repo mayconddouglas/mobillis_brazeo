@@ -14,7 +14,7 @@ import {
   Car, Bike, Truck, Package, ShoppingBag,
   Tag, Fuel, Coffee, HomeIcon, Smartphone, Wrench, ShoppingCart,
   FileText, Zap, Gift, Plane, Music, Film, Book, GraduationCap, DollarSign, CreditCard, PiggyBank,
-  Heart, Star, Umbrella, Award, Activity, Utensils, MoreHorizontal
+  Heart, Star, Umbrella, Award, Activity, Utensils, MoreHorizontal, Crown
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -51,11 +51,10 @@ import { motion } from 'motion/react';
 import { useSubscription } from '@/hooks/useSubscription';
 import { PlanBadge } from '@/components/shared/plan-badge';
 import { SubscriptionSheet } from '@/components/shared/subscription-sheet';
-
 export default function Settings() {
   const { user, signOut, isDemo } = useAuth();
   const { data: profile } = useProfile();
-  const { subscription, trialDaysLeft } = useSubscription();
+  const { subscription, trialDaysLeft, isPro } = useSubscription();
   const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
   const month = new Date().getMonth() + 1;
   const year = new Date().getFullYear();
@@ -92,8 +91,8 @@ export default function Settings() {
               <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center border border-primary/20 overflow-hidden">
                 <img src={profile?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${user?.id}`} className="w-16 h-16 object-cover" />
               </div>
-              <div className="absolute -bottom-1.5 -right-1.5">
-                <PlanBadge plan={subscription?.plan ?? 'free'} trialDaysLeft={trialDaysLeft} />
+              <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2">
+                <PlanBadge plan={subscription?.plan ?? 'free'} trialDaysLeft={trialDaysLeft} variant="inline" />
               </div>
             </div>
             <div className="flex-1">
@@ -123,7 +122,7 @@ export default function Settings() {
             <div className="text-xs font-bold text-muted-foreground bg-muted px-2 py-1 rounded-md">{isDark ? 'ATIVADO' : 'DESATIVADO'}</div>
           </div>
           <NotificationsSheet />
-          <ExportSheet />
+          <ExportSheet isPro={isPro} />
           <PrivacySheet />
         </div>
       </motion.div>
@@ -140,7 +139,7 @@ export default function Settings() {
           <WalletsSheet />
           <IncomeCategoriesSheet />
           <ExpenseCategoriesSheet />
-          <MonthlyGoalsSheet month={month} year={year} />
+          <MonthlyGoalsSheet month={month} year={year} isPro={isPro} />
           <SubscriptionSheet />
           <ResetDataSheet />
         </div>
@@ -159,8 +158,8 @@ export default function Settings() {
   );
 }
 
-const ActionRow = React.forwardRef<HTMLButtonElement, { icon: React.ReactNode, label: string, onClick?: () => void, className?: string; }>(
-  ({ icon, label, onClick, className, ...props }, ref) => {
+const ActionRow = React.forwardRef<HTMLButtonElement, { icon: React.ReactNode, label: string, onClick?: () => void, className?: string; proLocked?: boolean }>(
+  ({ icon, label, onClick, className, proLocked, ...props }, ref) => {
     return (
       <button 
         ref={ref}
@@ -170,10 +169,17 @@ const ActionRow = React.forwardRef<HTMLButtonElement, { icon: React.ReactNode, l
         {...props}
       >
         <div className="flex items-center gap-3">
-          <div className="text-muted-foreground">{icon}</div>
-          <span className="font-medium text-sm text-foreground">{label}</span>
+          <div className={proLocked ? "text-muted-foreground/40" : "text-muted-foreground"}>{icon}</div>
+          <span className={`font-medium text-sm ${proLocked ? "text-muted-foreground/60" : "text-foreground"}`}>{label}</span>
         </div>
-        <ChevronRight size={18} className="text-muted-foreground/50" />
+        <div className="flex items-center gap-2">
+          {proLocked && (
+            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-gradient-to-r from-yellow-400 to-amber-500 text-black">
+              <Crown size={10} /> PRO
+            </span>
+          )}
+          <ChevronRight size={18} className="text-muted-foreground/50" />
+        </div>
       </button>
     )
   }
@@ -205,9 +211,15 @@ function NotificationsSheet() {
   )
 }
 
-function ExportSheet() {
+function ExportSheet({ isPro }: { isPro: boolean }) {
   const { data: earnings } = useEarnings();
   const { data: expenses } = useExpenses();
+  const [open, setOpen] = useState(false);
+
+  const handleOpen = (val: boolean) => {
+    if (!isPro && val) return; // block for free users — sheet stays closed, badge visible
+    setOpen(val);
+  };
 
   const exportCSV = () => {
     const data = [
@@ -237,8 +249,14 @@ function ExportSheet() {
   };
 
   return (
-    <Sheet>
-      <SheetTrigger render={<ActionRow icon={<FileText size={18} />} label="Exportar Relatórios" />} />
+    <Sheet open={open} onOpenChange={handleOpen}>
+      <SheetTrigger render={
+        <ActionRow
+          icon={<FileText size={18} />}
+          label="Exportar Relatórios"
+          proLocked={!isPro}
+        />
+      } />
       <SheetContent side="bottom" className="max-h-[90vh] rounded-t-3xl p-6">
         <SheetHeader className="mb-6 text-left">
           <SheetTitle>Exportar Relatórios</SheetTitle>
@@ -554,7 +572,7 @@ function WalletsSheet() {
   )
 }
 
-function MonthlyGoalsSheet({ month, year }: { month: number; year: number }) {
+function MonthlyGoalsSheet({ month, year, isPro }: { month: number; year: number; isPro: boolean }) {
   const { data: goals, upsertGoal } = useGoals(month, year);
   const [earningGoal, setEarningGoal] = useState('');
   const [expenseLimit, setExpenseLimit] = useState('');
@@ -570,6 +588,11 @@ function MonthlyGoalsSheet({ month, year }: { month: number; year: number }) {
     }
   }, [goals, open]);
 
+  const handleOpen = (val: boolean) => {
+    if (!isPro && val) return;
+    setOpen(val);
+  };
+
   const handleSave = async () => {
     await upsertGoal({
       month,
@@ -581,8 +604,10 @@ function MonthlyGoalsSheet({ month, year }: { month: number; year: number }) {
   };
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger render={<ActionRow icon={<Target size={18} />} label="Metas Mensais" />} />
+    <Sheet open={open} onOpenChange={handleOpen}>
+      <SheetTrigger render={
+        <ActionRow icon={<Target size={18} />} label="Metas Mensais" proLocked={!isPro} />
+      } />
       <SheetContent side="bottom" className="max-h-[90vh] rounded-t-3xl p-6 overflow-y-auto">
         <SheetHeader className="mb-6 text-left">
           <SheetTitle>Metas deste Mês</SheetTitle>

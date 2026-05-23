@@ -62,8 +62,8 @@ export default function Dashboard() {
           <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center overflow-hidden">
             <img src={profile?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${user?.id}`} className="w-10 h-10 object-cover" />
           </div>
-          <div className="absolute -bottom-1.5 -right-1.5">
-            <PlanBadge plan={subscription?.plan ?? 'free'} trialDaysLeft={trialDaysLeft} />
+          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2">
+            <PlanBadge plan={subscription?.plan ?? 'free'} trialDaysLeft={trialDaysLeft} variant="avatar" />
           </div>
         </div>
       </motion.header>
