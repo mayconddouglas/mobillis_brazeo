@@ -12,15 +12,19 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import CreatePassword from './pages/CreatePassword';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
-  
+  const { user, loading, isOAuthWithoutPassword } = useAuth();
+
   if (loading) return <div className="h-screen flex items-center justify-center">Carregando...</div>;
   if (!user) return <Navigate to="/login" replace />;
-  
+
+  // Usuário OAuth sem senha: redireciona para criar senha antes de acessar o app
+  if (isOAuthWithoutPassword) return <Navigate to="/criar-senha" replace />;
+
   return <>{children}</>;
 }
 
@@ -32,6 +36,7 @@ export default function App() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/esqueci-senha" element={<ForgotPassword />} />
         <Route path="/redefinir-senha" element={<ResetPassword />} />
+        <Route path="/criar-senha" element={<CreatePassword />} />
         <Route path="/termos" element={<Terms />} />
         <Route path="/privacidade" element={<Privacy />} />
         

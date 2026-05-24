@@ -10,6 +10,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   deleteAccount: () => Promise<void>;
   isDemo: boolean;
+  isOAuthWithoutPassword: boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -19,6 +20,7 @@ const AuthContext = createContext<AuthContextType>({
   signOut: async () => {},
   deleteAccount: async () => {},
   isDemo: false,
+  isOAuthWithoutPassword: false,
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -129,8 +131,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await supabase.auth.signOut();
   };
 
+  // True quando o usuário entrou via OAuth (Google) e ainda não tem senha cadastrada
+  // Detectado por: provider principal é 'google' e não há identity de 'email'
+  const isOAuthWithoutPassword = !!user && !isDemo && (() => {
+    const identities = user.identities ?? [];
+    const hasEmailIdentity = identities.some((i) => i.provider === 'email');
+    const hasGoogleIdentity = identities.some((i) => i.provider === 'google');
+    return hasGoogleIdentity && !hasEmailIdentity;
+  })();
+
   return (
-    <AuthContext.Provider value={{ user, session, loading, signOut, deleteAccount, isDemo }}>
+    <AuthContext.Provider value={{ user, session, loading, signOut, deleteAccount, isDemo, isOAuthWithoutPassword }}>
       {children}
     </AuthContext.Provider>
   );
