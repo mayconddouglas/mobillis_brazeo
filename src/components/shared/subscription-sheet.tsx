@@ -5,23 +5,23 @@ import { motion, AnimatePresence } from 'motion/react'
 import { useSubscription } from '@/hooks/useSubscription'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
-import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { PlanBadge } from '@/components/shared/plan-badge'
 
 const PRO_FEATURES = [
-  { label: 'Carteiras ilimitadas',     icon: '🏦' },
-  { label: 'Categorias ilimitadas',    icon: '🏷️' },
-  { label: 'Lançamentos ilimitados',   icon: '♾️' },
-  { label: 'Metas mensais',            icon: '🎯' },
-  { label: 'Exportar CSV e PDF',       icon: '📄' },
-  { label: 'Histórico completo',       icon: '📊' },
-  { label: 'Relatórios avançados',     icon: '✨' },
+  { label: 'Carteiras ilimitadas',   icon: '🏦' },
+  { label: 'Categorias ilimitadas',  icon: '🏷️' },
+  { label: 'Lançamentos ilimitados', icon: '♾️' },
+  { label: 'Metas mensais',          icon: '🎯' },
+  { label: 'Exportar CSV e PDF',     icon: '📄' },
+  { label: 'Histórico completo',     icon: '📊' },
+  { label: 'Relatórios avançados',   icon: '✨' },
 ]
 
 const FREE_LIMITS = [
   '1 carteira',
-  '3 categorias de receita',
-  '3 categorias de despesa',
+  '3 cat. de receita',
+  '3 cat. de despesa',
   '30 lançamentos/mês',
 ]
 
@@ -80,136 +80,98 @@ export function SubscriptionSheet() {
         </button>
       } />
 
-      <SheetContent side="bottom" className="max-h-[95vh] rounded-t-3xl p-0 overflow-y-auto bg-background border-0">
+      <SheetContent side="bottom" className="max-h-[90vh] rounded-t-3xl p-0 overflow-y-auto bg-background">
 
-        {/* ── HERO HEADER ── */}
-        <div className="relative overflow-hidden px-6 pt-8 pb-6">
-          {/* Background glow */}
-          <div className="absolute inset-0 bg-gradient-to-b from-yellow-500/8 via-amber-500/4 to-transparent pointer-events-none" />
-          <div className="absolute -top-12 -right-12 w-48 h-48 bg-yellow-400/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -top-8 -left-8 w-32 h-32 bg-amber-500/8 rounded-full blur-2xl pointer-events-none" />
+        {/* Header — igual padrão das outras abas */}
+        <SheetHeader className="px-6 pt-6 pb-4 text-left border-b border-border/40">
+          <div className="flex items-center justify-between">
+            <SheetTitle className="text-xl font-bold">Plano & Assinatura</SheetTitle>
+            <PlanBadge plan={plan} trialDaysLeft={trialDaysLeft} variant="card" />
+          </div>
 
-          <SheetTitle className="sr-only">Plano & Assinatura</SheetTitle>
-
-          {isPro ? (
-            <div className="relative space-y-1">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-yellow-400 to-amber-500 shadow-lg shadow-yellow-500/25">
-                  <Crown className="h-4 w-4 text-black" />
-                </div>
-                <span className="text-xs font-bold tracking-widest text-yellow-400 uppercase">Assinante</span>
-              </div>
-              <h2 className="text-2xl font-black tracking-tight text-foreground">BrazeFlow Pro</h2>
-              <p className="text-sm text-muted-foreground">
-                {subscription?.current_period_end
-                  ? `Renova em ${new Date(subscription.current_period_end).toLocaleDateString('pt-BR')}`
-                  : 'Acesso completo ativo'}
-              </p>
-            </div>
-          ) : (
-            <div className="relative space-y-1">
-              <div className="flex items-center gap-2 mb-3">
-                <PlanBadge plan={plan} trialDaysLeft={trialDaysLeft} variant="card" />
-              </div>
-              <h2 className="text-2xl font-black tracking-tight text-foreground">Desbloqueie o Pro</h2>
-              <p className="text-sm text-muted-foreground">Controle financeiro sem limites por apenas</p>
-              <div className="flex items-baseline gap-1 pt-1">
-                <span className="text-4xl font-black text-yellow-400 tracking-tight">R$&nbsp;9</span>
-                <span className="text-xl font-bold text-yellow-400">,00</span>
-                <span className="text-sm text-muted-foreground ml-1">/mês</span>
-              </div>
+          {/* Preço só para free */}
+          {!isPro && (
+            <div className="flex items-baseline gap-1 pt-1">
+              <span className="text-2xl font-black text-yellow-400">R$ 9,00</span>
+              <span className="text-xs text-muted-foreground">/mês após o trial</span>
             </div>
           )}
-        </div>
 
-        {/* ── TRIAL ALERTS ── */}
-        <AnimatePresence>
+          {/* Alertas trial */}
           {isTrial && trialDaysLeft > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mx-6 mb-2 flex items-center gap-2 bg-violet-500/10 border border-violet-500/20 rounded-2xl px-4 py-3"
-            >
-              <FlaskConical className="h-4 w-4 text-violet-400 shrink-0" />
-              <p className="text-xs text-violet-300">
-                Trial termina em <strong>{trialDaysLeft} dias</strong>. Assine para manter o acesso.
-              </p>
-            </motion.div>
+            <div className="flex items-center gap-2 mt-2 bg-violet-500/10 border border-violet-500/20 rounded-xl px-3 py-2">
+              <FlaskConical className="h-3.5 w-3.5 text-violet-400 shrink-0" />
+              <p className="text-xs text-violet-300">Trial termina em <strong>{trialDaysLeft} dias</strong>.</p>
+            </div>
           )}
           {isTrial && trialDaysLeft === 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mx-6 mb-2 flex items-center gap-2 bg-red-500/10 border border-red-500/20 rounded-2xl px-4 py-3"
-            >
-              <AlertTriangle className="h-4 w-4 text-red-400 shrink-0" />
+            <div className="flex items-center gap-2 mt-2 bg-red-500/10 border border-red-500/20 rounded-xl px-3 py-2">
+              <AlertTriangle className="h-3.5 w-3.5 text-red-400 shrink-0" />
               <p className="text-xs text-red-300">Trial expirado. Assine para continuar.</p>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
+        </SheetHeader>
 
-        <div className="px-6 pb-8 space-y-4">
+        <div className="px-6 py-5 space-y-4">
 
           {isPro ? (
             /* ── PRO ATIVO ── */
-            <div className="rounded-2xl border border-yellow-500/25 bg-gradient-to-br from-yellow-400/8 to-amber-500/4 overflow-hidden">
-              <div className="px-5 pt-5 pb-4 space-y-3">
-                <p className="text-xs font-bold text-yellow-400 uppercase tracking-widest">Seus benefícios</p>
-                <div className="grid grid-cols-1 gap-2.5">
-                  {PRO_FEATURES.map((f) => (
-                    <div key={f.label} className="flex items-center gap-3">
-                      <div className="h-6 w-6 rounded-lg bg-yellow-400/10 flex items-center justify-center shrink-0">
-                        <Check className="h-3.5 w-3.5 text-yellow-400" />
-                      </div>
-                      <span className="text-sm text-foreground/80">{f.label}</span>
-                    </div>
-                  ))}
+            <div className="rounded-2xl border border-yellow-500/25 bg-gradient-to-br from-yellow-400/8 to-transparent p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Crown className="h-4 w-4 text-yellow-400" />
+                  <span className="text-sm font-bold">BrazeFlow Pro</span>
                 </div>
+                <span className="text-[10px] font-bold text-yellow-400 bg-yellow-400/10 px-2 py-0.5 rounded-full">ATIVO</span>
+              </div>
+              {subscription?.current_period_end && (
+                <p className="text-xs text-muted-foreground">
+                  Renova em {new Date(subscription.current_period_end).toLocaleDateString('pt-BR')}
+                </p>
+              )}
+              <div className="space-y-2 pt-1">
+                {PRO_FEATURES.map((f) => (
+                  <div key={f.label} className="flex items-center gap-2.5">
+                    <Check className="h-3.5 w-3.5 text-yellow-400 shrink-0" />
+                    <span className="text-xs text-muted-foreground">{f.label}</span>
+                  </div>
+                ))}
               </div>
             </div>
           ) : (
-            /* ── FREE → UPGRADE ── */
             <>
               {/* Trial badge */}
-              <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-gradient-to-r from-violet-500/15 to-purple-600/10 border border-violet-500/20">
-                <div className="h-8 w-8 rounded-xl bg-violet-500/20 flex items-center justify-center shrink-0">
-                  <Sparkles className="h-4 w-4 text-violet-400" />
-                </div>
+              <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-violet-500/10 border border-violet-500/20">
+                <Sparkles className="h-4 w-4 text-violet-400 shrink-0" />
                 <div>
-                  <p className="text-sm font-bold text-violet-300">7 dias grátis incluídos</p>
-                  <p className="text-xs text-muted-foreground">Sem cobrança até o fim do período</p>
+                  <p className="text-xs font-bold text-violet-300">7 dias grátis incluídos</p>
+                  <p className="text-[11px] text-muted-foreground">Sem cobrança até o fim do período</p>
                 </div>
               </div>
 
-              {/* Features Pro */}
-              <div className="rounded-2xl border border-border bg-card overflow-hidden">
-                <div className="px-5 pt-4 pb-1">
-                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">O que você vai ter</p>
-                </div>
-                <div className="px-5 pb-5 grid grid-cols-1 gap-2">
-                  {PRO_FEATURES.map((f) => (
-                    <div key={f.label} className="flex items-center gap-3">
-                      <span className="text-base leading-none">{f.icon}</span>
-                      <span className="text-sm text-foreground/80">{f.label}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Plano Free limitações */}
-              <div className="rounded-2xl border border-border/50 bg-muted/30 overflow-hidden">
-                <div className="px-5 pt-4 pb-1">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Zap className="h-3.5 w-3.5 text-muted-foreground" />
-                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Plano Free atual</p>
+              {/* Features */}
+              <div className="rounded-2xl border border-border bg-card p-4 space-y-2.5">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">O que você vai ter</p>
+                {PRO_FEATURES.map((f) => (
+                  <div key={f.label} className="flex items-center gap-2.5">
+                    <span className="text-sm leading-none w-5 text-center">{f.icon}</span>
+                    <span className="text-xs text-foreground/80">{f.label}</span>
                   </div>
+                ))}
+              </div>
+
+              {/* Free limits */}
+              <div className="rounded-2xl border border-border/50 bg-muted/20 px-4 py-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <Zap className="h-3 w-3 text-muted-foreground" />
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Plano Free atual</p>
                 </div>
-                <div className="px-5 pb-4 grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1">
                   {FREE_LIMITS.map((f) => (
-                    <div key={f} className="flex items-center gap-2 text-xs text-muted-foreground/70">
-                      <div className="h-1 w-1 rounded-full bg-muted-foreground/40 shrink-0" />
+                    <p key={f} className="text-[11px] text-muted-foreground/60 flex items-center gap-1.5">
+                      <span className="h-1 w-1 rounded-full bg-muted-foreground/40 shrink-0" />
                       {f}
-                    </div>
+                    </p>
                   ))}
                 </div>
               </div>
@@ -217,7 +179,7 @@ export function SubscriptionSheet() {
               {/* CTA */}
               <motion.div whileTap={{ scale: 0.98 }}>
                 <Button
-                  className="w-full h-14 font-black text-base rounded-2xl bg-gradient-to-r from-yellow-400 to-amber-500 text-black hover:opacity-95 shadow-lg shadow-yellow-500/20 border-0"
+                  className="w-full h-12 font-bold rounded-2xl bg-gradient-to-r from-yellow-400 to-amber-500 text-black hover:opacity-95 shadow-md shadow-yellow-500/15 border-0"
                   onClick={handleCheckout}
                   disabled={loadingCheckout}
                 >
@@ -228,50 +190,42 @@ export function SubscriptionSheet() {
                 </Button>
               </motion.div>
 
-              <p className="text-center text-xs text-muted-foreground/60">
+              <p className="text-center text-[11px] text-muted-foreground/50">
                 Após o trial, R$ 9,00/mês · Cancele quando quiser
               </p>
             </>
           )}
 
-          {/* Cancelar assinatura */}
+          {/* Cancelar */}
           {isPro && subscription?.stripe_subscription_id && (
-            <div className="pt-2 border-t border-border/40">
+            <div className="pt-1 border-t border-border/30">
               <AnimatePresence mode="wait">
                 {!cancelOpen ? (
                   <motion.button
-                    key="cancel-btn"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
+                    key="btn"
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                     type="button"
-                    className="text-xs text-muted-foreground/50 underline underline-offset-4 hover:text-muted-foreground w-full text-center py-2"
+                    className="text-xs text-muted-foreground/40 underline underline-offset-4 hover:text-muted-foreground w-full text-center py-2"
                     onClick={() => setCancelOpen(true)}
                   >
                     Cancelar assinatura
                   </motion.button>
                 ) : (
                   <motion.div
-                    key="cancel-confirm"
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
+                    key="confirm"
+                    initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                     className="space-y-3 rounded-2xl border border-red-500/20 bg-red-500/5 p-4"
                   >
                     <p className="text-sm font-bold text-red-400">Cancelar assinatura?</p>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      Você perde o acesso Pro ao fim do período atual. Seus dados financeiros ficam salvos.
-                    </p>
+                    <p className="text-xs text-muted-foreground">Você perde o acesso Pro ao fim do período. Seus dados ficam salvos.</p>
                     <div className="flex gap-2">
                       <Button variant="outline" className="flex-1 h-10 rounded-xl" onClick={() => setCancelOpen(false)}>
                         Manter Pro
                       </Button>
-                      <Button
-                        variant="destructive"
-                        className="flex-1 h-10 rounded-xl"
+                      <Button variant="destructive" className="flex-1 h-10 rounded-xl"
                         onClick={() => {
-                          const portalUrl = import.meta.env.VITE_STRIPE_PORTAL_URL
-                          if (portalUrl) window.open(portalUrl, '_blank')
+                          const url = import.meta.env.VITE_STRIPE_PORTAL_URL
+                          if (url) window.open(url, '_blank')
                           else alert('Configure VITE_STRIPE_PORTAL_URL no .env')
                         }}
                       >
@@ -283,6 +237,7 @@ export function SubscriptionSheet() {
               </AnimatePresence>
             </div>
           )}
+
         </div>
       </SheetContent>
     </Sheet>
