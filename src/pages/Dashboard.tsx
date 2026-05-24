@@ -24,7 +24,11 @@ export default function Dashboard() {
   const { data: categories } = useIncomeCategories();
   const { subscription, trialDaysLeft } = useSubscription();
 
-  const totalEarnings = fromCents(earnings?.reduce((acc, curr) => acc + toCents(curr.amount), 0) || 0);
+  const totalEarnings = fromCents(
+    earnings
+      ?.filter(e => isThisMonth(new Date(e.date + 'T12:00:00')))
+      .reduce((acc, curr) => acc + toCents(curr.amount), 0) || 0
+  );
   const totalExpenses = fromCents(
     expenses
       ?.filter(e => isThisMonth(new Date(e.date + 'T12:00:00')))
