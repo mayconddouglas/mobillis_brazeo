@@ -131,18 +131,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await supabase.auth.signOut();
   };
 
-  // Detecta usuário Google sem senha:
-  // - tem identity 'google'
-  // - NÃO tem identity 'email' (adicionada automaticamente pelo Supabase ao criar senha)
-  // Após refreshSession() o user.identities é atualizado e isso vira false
-  const isOAuthWithoutPassword = !!user && !isDemo && (() => {
+  // Detecta usuário Google sem senha.
+  // Só calcula após loading=false para evitar falso positivo durante
+  // a hidratação inicial (quando identities ainda pode chegar vazio)
+  const isOAuthWithoutPassword = !loading && !!user && !isDemo && (() => {
     const identities = user.identities ?? [];
+
+    // Se identities está vazio, usa app_metadata como fallback
     if (identities.length === 0) {
-      // Fallback: checar app_metadata quando identities não vem populado
       const provider = user.app_metadata?.provider ?? '';
       const providers: string[] = user.app_metadata?.providers ?? [];
+      // Só bloqueia se provider for claramente google e não tiver email
+      if (!provider) return false;
       return provider === 'google' && !providers.includes('email');
     }
+
     const hasEmailIdentity = identities.some((i) => i.provider === 'email');
     const hasGoogleIdentity = identities.some((i) => i.provider === 'google');
     return hasGoogleIdentity && !hasEmailIdentity;

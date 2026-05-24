@@ -22,7 +22,8 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   if (loading) return <div className="h-screen flex items-center justify-center">Carregando...</div>;
   if (!user) return <Navigate to="/login" replace />;
 
-  // Usuário Google sem senha ainda: vai para criar-senha antes de entrar
+  // Só redireciona para criar-senha se loading terminou e certamente não tem senha
+  // isOAuthWithoutPassword já inclui !loading na sua computação
   if (isOAuthWithoutPassword) return <Navigate to="/criar-senha" replace />;
 
   return <>{children}</>;
@@ -30,12 +31,16 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 // Rota exclusiva para criação de senha OAuth:
 // - Exige usuário autenticado
-// - Se usuário já tem senha (não é mais isOAuthWithoutPassword), vai direto ao dashboard
+// - Aguarda loading completo antes de verificar isOAuthWithoutPassword
+// - Se usuário já tem senha, vai direto ao dashboard
 function OAuthPasswordRoute() {
   const { user, loading, isOAuthWithoutPassword } = useAuth();
 
   if (loading) return <div className="h-screen flex items-center justify-center">Carregando...</div>;
   if (!user) return <Navigate to="/login" replace />;
+
+  // Só redireciona para dashboard se loading terminou E já tem senha
+  // Evita redirect prematuro enquanto identities ainda carrega
   if (!isOAuthWithoutPassword) return <Navigate to="/dashboard" replace />;
 
   return <CreatePassword />;
