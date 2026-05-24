@@ -80,6 +80,11 @@ export default function CreatePassword() {
     try {
       const { error } = await supabase.auth.updateUser({ password: values.password });
       if (error) throw error;
+
+      // Força refresh da sessão para que a nova identity 'email' apareça
+      // no user.identities — sem isso o ProtectedRoute continua redirecionando
+      await supabase.auth.refreshSession();
+
       navigate('/dashboard', { replace: true });
     } catch (err: any) {
       setError(getAuthErrorMessage(err));

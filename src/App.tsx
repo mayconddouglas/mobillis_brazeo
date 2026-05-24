@@ -22,10 +22,23 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   if (loading) return <div className="h-screen flex items-center justify-center">Carregando...</div>;
   if (!user) return <Navigate to="/login" replace />;
 
-  // Usuário OAuth sem senha: redireciona para criar senha antes de acessar o app
+  // Usuário Google sem senha ainda: vai para criar-senha antes de entrar
   if (isOAuthWithoutPassword) return <Navigate to="/criar-senha" replace />;
 
   return <>{children}</>;
+}
+
+// Rota exclusiva para criação de senha OAuth:
+// - Exige usuário autenticado
+// - Se usuário já tem senha (não é mais isOAuthWithoutPassword), vai direto ao dashboard
+function OAuthPasswordRoute() {
+  const { user, loading, isOAuthWithoutPassword } = useAuth();
+
+  if (loading) return <div className="h-screen flex items-center justify-center">Carregando...</div>;
+  if (!user) return <Navigate to="/login" replace />;
+  if (!isOAuthWithoutPassword) return <Navigate to="/dashboard" replace />;
+
+  return <CreatePassword />;
 }
 
 export default function App() {
@@ -36,7 +49,7 @@ export default function App() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/esqueci-senha" element={<ForgotPassword />} />
         <Route path="/redefinir-senha" element={<ResetPassword />} />
-        <Route path="/criar-senha" element={<CreatePassword />} />
+        <Route path="/criar-senha" element={<OAuthPasswordRoute />} />
         <Route path="/termos" element={<Terms />} />
         <Route path="/privacidade" element={<Privacy />} />
         
