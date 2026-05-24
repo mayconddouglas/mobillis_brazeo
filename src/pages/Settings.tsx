@@ -681,18 +681,17 @@ function IncomeCategoriesSheet({ isPro }: { isPro: boolean }) {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger render={<ActionRow icon={<Briefcase size={18} />} label="Categorias de Receitas" />} />
-      <SheetContent side="bottom" className="max-h-[90vh] rounded-t-3xl p-6 flex flex-col">
+      <SheetContent side="bottom" className="max-h-[90vh] rounded-t-3xl p-6 flex flex-col bg-background">
         <SheetHeader className="mb-4 text-left shrink-0">
           <div className="flex items-center justify-between">
-            <SheetTitle>Categorias de Receitas</SheetTitle>
+            <SheetTitle className="text-xl">Categorias de Receitas</SheetTitle>
             <Button
-              size="icon"
-              variant="outline"
-              className="w-8 h-8 rounded-full"
+              size="sm"
+              className="rounded-full gap-1 shadow-sm px-4 shrink-0"
               onClick={openAdd}
               disabled={atLimit}
             >
-              <Plus size={16} />
+              <Plus size={16} /> Nova
             </Button>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogContent className="sm:max-w-md w-[calc(100%-32px)] mx-auto rounded-2xl p-6">
