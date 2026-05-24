@@ -53,7 +53,7 @@ function getPasswordStrength(password: string) {
 }
 
 export default function CreatePassword() {
-  const { user } = useAuth();
+  const { user, markPasswordCreated } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -81,10 +81,10 @@ export default function CreatePassword() {
       const { error } = await supabase.auth.updateUser({ password: values.password });
       if (error) throw error;
 
-      // Força refresh da sessão para que a nova identity 'email' apareça
-      // no user.identities — sem isso o ProtectedRoute continua redirecionando
-      await supabase.auth.refreshSession();
-
+      // Marca a flag no contexto ANTES de navegar
+      // Isso impede que isOAuthWithoutPassword volte para true
+      // enquanto o Supabase ainda não atualizou user.identities
+      markPasswordCreated();
       navigate('/dashboard', { replace: true });
     } catch (err: any) {
       setError(getAuthErrorMessage(err));
@@ -204,7 +204,7 @@ export default function CreatePassword() {
                     </Button>
                     <button
                       type="button"
-                      onClick={() => navigate('/dashboard', { replace: true })}
+                      onClick={() => { markPasswordCreated(); navigate('/dashboard', { replace: true }); }}
                       className="text-center text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground w-full"
                     >
                       Pular por agora

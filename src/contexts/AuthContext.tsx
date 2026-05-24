@@ -11,6 +11,7 @@ interface AuthContextType {
   deleteAccount: () => Promise<void>;
   isDemo: boolean;
   isOAuthWithoutPassword: boolean;
+  markPasswordCreated: () => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -21,13 +22,19 @@ const AuthContext = createContext<AuthContextType>({
   deleteAccount: async () => {},
   isDemo: false,
   isOAuthWithoutPassword: false,
+  markPasswordCreated: () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  // Flag que indica "senha acabou de ser criada nesta sessão"
+  // Quando true, isOAuthWithoutPassword fica false independente de identities
+  const [passwordJustCreated, setPasswordJustCreated] = useState(false);
   const navigate = useNavigate();
+
+  const markPasswordCreated = () => setPasswordJustCreated(true);
 
   const isSetup = !!import.meta.env.VITE_SUPABASE_URL && !!import.meta.env.VITE_SUPABASE_ANON_KEY;
   const isDemo = !isSetup;
@@ -132,17 +139,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Detecta usuário Google sem senha.
-  // Só calcula após loading=false para evitar falso positivo durante
-  // a hidratação inicial (quando identities ainda pode chegar vazio)
-  const isOAuthWithoutPassword = !loading && !!user && !isDemo && (() => {
+  // passwordJustCreated garante que após criar senha nunca volta para /criar-senha
+  const isOAuthWithoutPassword = !loading && !!user && !isDemo && !passwordJustCreated && (() => {
     const identities = user.identities ?? [];
 
-    // Se identities está vazio, usa app_metadata como fallback
     if (identities.length === 0) {
+      // Fallback via app_metadata quando identities não vem populado
       const provider = user.app_metadata?.provider ?? '';
-      const providers: string[] = user.app_metadata?.providers ?? [];
-      // Só bloqueia se provider for claramente google e não tiver email
       if (!provider) return false;
+      const providers: string[] = user.app_metadata?.providers ?? [];
       return provider === 'google' && !providers.includes('email');
     }
 
@@ -152,7 +157,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   })();
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signOut, deleteAccount, isDemo, isOAuthWithoutPassword }}>
+    <AuthContext.Provider value={{ user, session, loading, signOut, deleteAccount, isDemo, isOAuthWithoutPassword, markPasswordCreated }}>
       {children}
     </AuthContext.Provider>
   );
