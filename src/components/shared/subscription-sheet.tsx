@@ -82,9 +82,21 @@ export function SubscriptionSheet() {
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        {triggerRow}
-      </SheetTrigger>
+      <SheetTrigger render={
+        <button
+          type="button"
+          className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/50 transition-colors w-full bg-transparent border-0 text-left"
+        >
+          <div className="flex items-center gap-3">
+            <div className="text-muted-foreground"><Crown size={18} /></div>
+            <span className="font-medium text-sm text-foreground">Plano & Assinatura</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <PlanBadge plan={plan} trialDaysLeft={trialDaysLeft} variant="inline" />
+            <ChevronRight size={18} className="text-muted-foreground/50" />
+          </div>
+        </button>
+      } />
 
       <SheetContent side="bottom" className="max-h-[92vh] rounded-t-3xl p-0 overflow-y-auto">
         {/* Header */}

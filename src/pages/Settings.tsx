@@ -51,6 +51,7 @@ import { motion } from 'motion/react';
 import { useSubscription } from '@/hooks/useSubscription';
 import { PlanBadge } from '@/components/shared/plan-badge';
 import { SubscriptionSheet } from '@/components/shared/subscription-sheet';
+import { PLAN_LIMITS } from '@/lib/stripe';
 export default function Settings() {
   const { user, signOut, isDemo } = useAuth();
   const { data: profile } = useProfile();
@@ -136,9 +137,9 @@ export default function Settings() {
         <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider px-2">Conta & Configurações</h3>
         <div className="bg-card rounded-2xl border shadow-sm divide-y">
           <UserProfileSheet />
-          <WalletsSheet />
-          <IncomeCategoriesSheet />
-          <ExpenseCategoriesSheet />
+          <WalletsSheet isPro={isPro} />
+          <IncomeCategoriesSheet isPro={isPro} />
+          <ExpenseCategoriesSheet isPro={isPro} />
           <MonthlyGoalsSheet month={month} year={year} isPro={isPro} />
           <SubscriptionSheet />
           <ResetDataSheet />
@@ -478,14 +479,18 @@ function UserProfileSheet() {
   )
 }
 
-function WalletsSheet() {
+function WalletsSheet({ isPro }: { isPro: boolean }) {
   const { data: wallets, addWallet, updateWallet, deleteWallet } = useWallets();
   const [open, setOpen] = useState(false);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [newWallet, setNewWallet] = useState({ name: '', color: '#3B82F6', icon: 'landmark', type: 'checking' });
 
+  const walletLimit = isPro ? Infinity : PLAN_LIMITS.free.wallets;
+  const atLimit = !isPro && (wallets?.length ?? 0) >= walletLimit;
+
   const handleAdd = async () => {
     if (!newWallet.name) return;
+    if (atLimit) { alert(`Plano Free permite apenas ${walletLimit} carteira. Faça upgrade para adicionar mais.`); return; }
     await addWallet({ ...newWallet, base_balance: 0 });
     setNewWallet({ name: '', color: '#3B82F6', icon: 'landmark', type: 'checking' });
     setIsAddOpen(false);
@@ -498,10 +503,15 @@ function WalletsSheet() {
         <SheetHeader className="mb-6 text-left shrink-0 border-b pb-4">
           <div className="flex items-center justify-between">
             <SheetTitle>Contas & Cartões</SheetTitle>
-            <Button size="sm" onClick={() => setIsAddOpen(true)} className="rounded-full gap-1">
+            <Button size="sm" onClick={() => setIsAddOpen(true)} className="rounded-full gap-1" disabled={atLimit}>
               <Plus size={16} /> Nova
             </Button>
           </div>
+          {atLimit && (
+            <p className="text-xs text-amber-500 mt-2">
+              Limite do plano Free atingido (1 carteira). <span className="underline cursor-pointer" onClick={() => setOpen(false)}>Faça upgrade para Pro.</span>
+            </p>
+          )}
         </SheetHeader>
         
         <div className="flex-1 overflow-y-auto space-y-3 pb-4 pr-2">
@@ -628,17 +638,24 @@ function MonthlyGoalsSheet({ month, year, isPro }: { month: number; year: number
   )
 }
 
-function IncomeCategoriesSheet() {
+function IncomeCategoriesSheet({ isPro }: { isPro: boolean }) {
   const { data: categories, addIncomeCategory, updateIncomeCategory, deleteIncomeCategory } = useIncomeCategories();
   const [open, setOpen] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<any>(null);
   const [newCategory, setNewCategory] = useState({ name: '', color: '#3B82F6', icon: 'briefcase' });
 
+  const catLimit = isPro ? Infinity : PLAN_LIMITS.free.incomeCategories;
+  const atLimit = !isPro && (categories?.length ?? 0) >= catLimit;
+
   const lighterColors = ['#60a5fa', '#4ade80', '#f87171', '#fbbf24', '#c084fc', '#f472b6', '#2dd4bf'];
 
   const handleSave = async () => {
     if (!newCategory.name) return;
+    if (!editingCategory && atLimit) {
+      alert(`Plano Free permite apenas ${catLimit} categorias de receita. Faça upgrade para adicionar mais.`);
+      return;
+    }
     if (editingCategory) {
       await updateIncomeCategory({ id: editingCategory.id, ...newCategory });
     } else {
@@ -673,9 +690,15 @@ function IncomeCategoriesSheet() {
               variant="outline"
               className="w-8 h-8 rounded-full"
               onClick={openAdd}
+              disabled={atLimit}
             >
               <Plus size={16} />
             </Button>
+            {atLimit && (
+              <p className="text-xs text-amber-500 w-full mt-2">
+                Limite Free ({catLimit} categorias). Faça upgrade para Pro.
+              </p>
+            )}
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogContent className="sm:max-w-md w-[calc(100%-32px)] mx-auto rounded-2xl p-6">
                 <DialogHeader>
@@ -755,11 +778,14 @@ function IncomeCategoriesSheet() {
 }
 
 
-function ExpenseCategoriesSheet() {
+function ExpenseCategoriesSheet({ isPro }: { isPro: boolean }) {
   const { data: categories, addCategory, deleteCategory } = useExpenseCategories();
   const [open, setOpen] = useState(false);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [newCat, setNewCat] = useState({ name: '', color: '#EF4444', icon: 'tag' });
+
+  const catLimit = isPro ? Infinity : PLAN_LIMITS.free.expenseCategories;
+  const atLimit = !isPro && (categories?.length ?? 0) >= catLimit;
 
   const lighterColors = ['#60a5fa', '#4ade80', '#f87171', '#fbbf24', '#c084fc', '#f472b6', '#2dd4bf', '#a78bfa', '#34d399', '#fbbf24'];
 
@@ -775,6 +801,7 @@ function ExpenseCategoriesSheet() {
 
   const handleAdd = async () => {
     if (!newCat.name) return;
+    if (atLimit) { alert(`Plano Free permite apenas ${catLimit} categorias de despesa. Faça upgrade para Pro.`); return; }
     await addCategory(newCat);
     setNewCat({ name: '', color: '#EF4444', icon: 'tag' });
     setIsAddOpen(false);
@@ -785,6 +812,7 @@ function ExpenseCategoriesSheet() {
       alert("Você já possui esta categoria.");
       return;
     }
+    if (atLimit) { alert(`Plano Free permite apenas ${catLimit} categorias de despesa. Faça upgrade para Pro.`); return; }
     await addCategory(cat);
   };
 
@@ -802,9 +830,15 @@ function ExpenseCategoriesSheet() {
               size="sm"
               className="rounded-full gap-1 shadow-sm px-4 shrink-0"
               onClick={() => setIsAddOpen(true)}
+              disabled={atLimit}
             >
               <Plus size={16} /> Nova
             </Button>
+            {atLimit && (
+              <p className="text-xs text-amber-500 w-full mt-2">
+                Limite Free ({catLimit} categorias). Faça upgrade para Pro.
+              </p>
+            )}
             <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
               <DialogContent className="sm:max-w-md w-[calc(100%-32px)] mx-auto rounded-2xl p-6">
                 <DialogHeader>
