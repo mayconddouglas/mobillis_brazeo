@@ -682,7 +682,7 @@ function IncomeCategoriesSheet({ isPro }: { isPro: boolean }) {
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger render={<ActionRow icon={<Briefcase size={18} />} label="Categorias de Receitas" />} />
       <SheetContent side="bottom" className="max-h-[90vh] rounded-t-3xl p-6 flex flex-col">
-        <SheetHeader className="mb-6 text-left shrink-0 border-b pb-4">
+        <SheetHeader className="mb-4 text-left shrink-0">
           <div className="flex items-center justify-between">
             <SheetTitle>Categorias de Receitas</SheetTitle>
             <Button
@@ -694,11 +694,6 @@ function IncomeCategoriesSheet({ isPro }: { isPro: boolean }) {
             >
               <Plus size={16} />
             </Button>
-            {atLimit && (
-              <p className="text-xs text-amber-500 w-full mt-2">
-                Limite Free ({catLimit} categorias). Faça upgrade para Pro.
-              </p>
-            )}
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogContent className="sm:max-w-md w-[calc(100%-32px)] mx-auto rounded-2xl p-6">
                 <DialogHeader>
@@ -746,6 +741,14 @@ function IncomeCategoriesSheet({ isPro }: { isPro: boolean }) {
               </DialogContent>
             </Dialog>
           </div>
+          {atLimit && (
+            <div className="flex items-center gap-2 mt-3 px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20">
+              <Crown className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+              <p className="text-xs text-amber-500">
+                Limite Free atingido ({catLimit} categorias). Faça <span className="font-semibold">upgrade para Pro</span> para adicionar mais.
+              </p>
+            </div>
+          )}
         </SheetHeader>
         <div className="flex-1 overflow-y-auto space-y-3 pb-4">
           {categories?.map(p => {
@@ -825,12 +828,9 @@ function ExpenseCategoriesSheet({ isPro }: { isPro: boolean }) {
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger render={<ActionRow icon={<Tags size={18} />} label="Categorias de Despesas" />} />
       <SheetContent side="bottom" className="max-h-[90vh] rounded-t-3xl p-6 flex flex-col bg-background">
-        <SheetHeader className="mb-6 text-left shrink-0 pb-2">
+        <SheetHeader className="mb-4 text-left shrink-0">
           <div className="flex items-center justify-between">
-            <div className="min-w-0 flex-1 pr-4">
-              <SheetTitle className="text-xl">Categorias</SheetTitle>
-              <p className="text-xs text-muted-foreground mt-1 leading-tight">Gerencie como você classifica seus gastos.</p>
-            </div>
+            <SheetTitle className="text-xl">Categorias de Despesas</SheetTitle>
             <Button
               size="sm"
               className="rounded-full gap-1 shadow-sm px-4 shrink-0"
@@ -839,11 +839,6 @@ function ExpenseCategoriesSheet({ isPro }: { isPro: boolean }) {
             >
               <Plus size={16} /> Nova
             </Button>
-            {atLimit && (
-              <p className="text-xs text-amber-500 w-full mt-2">
-                Limite Free ({catLimit} categorias). Faça upgrade para Pro.
-              </p>
-            )}
             <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
               <DialogContent className="sm:max-w-md w-[calc(100%-32px)] mx-auto rounded-2xl p-6">
                 <DialogHeader>
@@ -889,6 +884,14 @@ function ExpenseCategoriesSheet({ isPro }: { isPro: boolean }) {
               </DialogContent>
             </Dialog>
           </div>
+          {atLimit && (
+            <div className="flex items-center gap-2 mt-3 px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20">
+              <Crown className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+              <p className="text-xs text-amber-500">
+                Limite Free atingido ({catLimit} categorias). Faça <span className="font-semibold">upgrade para Pro</span> para adicionar mais.
+              </p>
+            </div>
+          )}
         </SheetHeader>
         
         <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-3 pb-4 w-full">
