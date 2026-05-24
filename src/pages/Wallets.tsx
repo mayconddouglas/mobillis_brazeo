@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useWallets, useExpenses, useExpenseCategories, useEarnings, useIncomeCategories, Wallet } from '../hooks';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Wallet as WalletIcon, ArrowLeftRight, CreditCard, Landmark, Edit2, Trash2, Tag, PlusCircle } from 'lucide-react';
+import { Plus, Wallet as WalletIcon, ArrowLeftRight, CreditCard, Landmark, Edit2, Trash2, Tag, PlusCircle, Crown } from 'lucide-react';
 import { format, isThisMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
@@ -25,14 +25,20 @@ import { parseDateLocal } from '@/utils/date';
 import { formatBRL } from '@/utils/currency';
 import { motion } from 'motion/react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSubscription } from '@/hooks/useSubscription';
+import { PLAN_LIMITS } from '@/lib/stripe';
 
 export default function Wallets() {
   const { isDemo } = useAuth();
+  const { isPro } = useSubscription();
   const { data: wallets, addWallet, updateWallet, deleteWallet } = useWallets();
   const { data: expenses, addExpense, deleteExpense } = useExpenses();
   const { data: earnings, addEarning } = useEarnings();
   const { data: categories, addCategory: addExpenseCategory } = useExpenseCategories();
   const { data: incomeCategories, addIncomeCategory } = useIncomeCategories();
+
+  const walletLimit = isPro ? Infinity : PLAN_LIMITS.free.wallets;
+  const atWalletLimit = !isPro && (wallets?.length ?? 0) >= walletLimit;
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingWallet, setEditingWallet] = useState<Wallet | null>(null);
@@ -140,6 +146,7 @@ export default function Wallets() {
   };
 
   const handleOpenAdd = () => {
+    if (atWalletLimit) return;
     setEditingWallet(null);
     setNewWallet({
       name: '',
@@ -248,17 +255,27 @@ export default function Wallets() {
           </Card>
         ))}
 
-        <Card 
-          onClick={handleOpenAdd}
-          className="min-w-[280px] snap-center shrink-0 border-dashed border-2 bg-transparent hover:bg-muted/50 cursor-pointer flex items-center justify-center min-h-[160px]"
-        >
-          <div className="text-center text-muted-foreground flex flex-col items-center gap-2">
-            <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
-              <Plus size={24} />
+        {!atWalletLimit ? (
+          <Card
+            onClick={handleOpenAdd}
+            className="min-w-[280px] snap-center shrink-0 border-dashed border-2 bg-transparent hover:bg-muted/50 cursor-pointer flex items-center justify-center min-h-[160px]"
+          >
+            <div className="text-center text-muted-foreground flex flex-col items-center gap-2">
+              <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                <Plus size={24} />
+              </div>
+              <p className="font-semibold text-sm">Nova Conta</p>
             </div>
-            <p className="font-semibold text-sm">Nova Conta</p>
-          </div>
-        </Card>
+          </Card>
+        ) : (
+          <Card className="min-w-[280px] snap-center shrink-0 border-dashed border-2 bg-transparent flex flex-col items-center justify-center min-h-[160px] gap-2 px-4">
+            <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center">
+              <Crown size={22} className="text-yellow-400" />
+            </div>
+            <p className="font-semibold text-sm text-muted-foreground text-center">Limite do plano Free</p>
+            <p className="text-xs text-muted-foreground/70 text-center leading-tight">Faça upgrade para Pro e adicione carteiras ilimitadas.</p>
+          </Card>
+        )}
       </motion.div>
 
       {/* Actions */}

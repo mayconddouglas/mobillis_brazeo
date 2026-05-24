@@ -751,26 +751,31 @@ function IncomeCategoriesSheet({ isPro }: { isPro: boolean }) {
           {categories?.map(p => {
             const IconComponent = incomeCategoryIconMap[p.icon] || Briefcase;
             return (
-            <div key={p.id} className="flex items-center justify-between p-3 border rounded-xl shadow-sm bg-card" onClick={() => openEdit(p)}>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center text-white" style={{ backgroundColor: p.color }}>
-                  <IconComponent size={18} />
+              <div key={p.id} className="flex items-center justify-between p-3 border rounded-2xl bg-card hover:border-primary/20 transition-colors" onClick={() => openEdit(p)}>
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className="w-10 h-10 shrink-0 rounded-full flex items-center justify-center text-white shadow-sm" style={{ backgroundColor: p.color }}>
+                    <IconComponent size={18} />
+                  </div>
+                  <span className="font-semibold text-sm truncate">{p.name}</span>
                 </div>
-                <div>
-                  <p className="font-semibold text-sm">{p.name}</p>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Button variant={p.is_active ? 'default' : 'secondary'} size="icon" className="w-8 h-8 rounded-full" onClick={(e) => { e.stopPropagation(); updateIncomeCategory({ id: p.id, is_active: !p.is_active })}}>
+                    <Power size={14} className={p.is_active ? 'text-white' : 'text-muted-foreground'} />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="w-8 h-8 rounded-full text-red-500 hover:bg-red-50" onClick={(e) => { e.stopPropagation(); deleteIncomeCategory(p.id)}}>
+                    <Trash2 size={14} />
+                  </Button>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Button variant={p.is_active ? 'default' : 'secondary'} size="icon" className="w-8 h-8 rounded-full" onClick={(e) => { e.stopPropagation(); updateIncomeCategory({ id: p.id, is_active: !p.is_active })}}>
-                  <Power size={14} className={p.is_active ? 'text-white' : 'text-muted-foreground'} />
-                </Button>
-                <Button variant="ghost" size="icon" className="w-8 h-8 rounded-full text-red-500 hover:text-red-600 hover:bg-red-50" onClick={(e) => { e.stopPropagation(); deleteIncomeCategory(p.id)}}>
-                  <Trash2 size={14} />
-                </Button>
-              </div>
+            )
+          })}
+          {categories?.length === 0 && (
+            <div className="border-dashed border-2 rounded-2xl p-8 flex flex-col items-center justify-center text-center text-muted-foreground gap-2">
+              <Briefcase size={24} className="opacity-20" />
+              <p className="text-sm">Nenhuma categoria criada ainda.</p>
+              <p className="text-xs opacity-60">Toque em "+" para adicionar.</p>
             </div>
-          )})}
-          {categories?.length === 0 && <p className="text-center text-muted-foreground py-8 text-sm">Nenhuma categoria cadastrada.</p>}
+          )}
         </div>
       </SheetContent>
     </Sheet>
@@ -886,60 +891,30 @@ function ExpenseCategoriesSheet({ isPro }: { isPro: boolean }) {
           </div>
         </SheetHeader>
         
-        <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-4 pb-4 w-full">
-          {/* Sugestões Rápidas */}
-          <div className="space-y-3 w-full">
-            <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Sugestões Rápidas</h4>
-            <div className="flex overflow-x-auto pb-2 pt-1 gap-2 w-full snap-x [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-              {predefinedCategories.map((cat, idx) => {
-                const IconComp = categoryIconMap[cat.icon] || Tags;
-                const exists = categories?.some(c => c.name.toLowerCase() === cat.name.toLowerCase());
-                return (
-                  <div 
-                    key={idx} 
-                    onClick={() => !exists && handleAddPredefined(cat)}
-                    className={`snap-start shrink-0 p-2 pr-3 rounded-xl border transition-all ${exists ? 'opacity-50 grayscale cursor-not-allowed border-dashed bg-transparent' : 'bg-card shadow-sm cursor-pointer hover:border-primary/50 hover:shadow-md active:scale-95 flex flex-row items-center justify-start text-left gap-2'}`}
-                  >
-                    <div className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-white shadow-sm" style={{ backgroundColor: cat.color }}>
-                      <IconComp size={14} />
-                    </div>
-                    <span className="text-xs font-semibold">{cat.name}</span>
-                    {exists && <Check size={12} className="ml-1 text-muted-foreground" />}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-3 pb-4 w-full">
+          {categories?.map(c => {
+            const IconComponent = categoryIconMap[c.icon] || Tags;
+            return (
+              <div key={c.id} className="flex items-center justify-between p-3 border rounded-2xl bg-card hover:border-primary/20 transition-colors">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className="w-10 h-10 shrink-0 rounded-full flex items-center justify-center text-white shadow-sm" style={{ backgroundColor: c.color }}>
+                    <IconComponent size={18} />
                   </div>
-                )
-              })}
-            </div>
-          </div>
-
-          {/* Categorias do Usuário */}
-          <div className="space-y-3 w-full">
-            <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Suas Categorias</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
-              {categories?.map(c => {
-                const IconComponent = categoryIconMap[c.icon] || Tags;
-                return (
-                <div key={c.id} className="group flex items-center justify-between p-3 border rounded-2xl shadow-sm bg-card hover:border-primary/20 transition-colors w-full overflow-hidden">
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <div className="w-10 h-10 shrink-0 rounded-full flex items-center justify-center text-white shadow-sm" style={{ backgroundColor: c.color }}>
-                      <IconComponent size={18} />
-                    </div>
-                    <div className="flex flex-col min-w-0 pr-2">
-                      <span className="font-semibold text-sm truncate block">{c.name}</span>
-                    </div>
-                  </div>
-                  <Button variant="ghost" size="icon" className="w-8 h-8 shrink-0 rounded-full text-red-500 opacity-80 hover:opacity-100 hover:bg-red-50 relative z-10" onClick={() => deleteCategory(c.id)}>
-                    <Trash2 size={16} />
-                  </Button>
+                  <span className="font-semibold text-sm truncate">{c.name}</span>
                 </div>
-              )})}
-              {categories?.length === 0 && (
-                <div className="col-span-1 border-dashed border-2 rounded-2xl p-8 flex flex-col items-center justify-center text-center text-muted-foreground gap-2 w-full">
-                  <Tags size={24} className="opacity-20" />
-                  <p className="text-sm">Você ainda não tem categorias de despesas.</p>
-                </div>
-              )}
+                <Button variant="ghost" size="icon" className="w-8 h-8 shrink-0 rounded-full text-red-500 hover:bg-red-50" onClick={() => deleteCategory(c.id)}>
+                  <Trash2 size={16} />
+                </Button>
+              </div>
+            )
+          })}
+          {categories?.length === 0 && (
+            <div className="border-dashed border-2 rounded-2xl p-8 flex flex-col items-center justify-center text-center text-muted-foreground gap-2">
+              <Tags size={24} className="opacity-20" />
+              <p className="text-sm">Nenhuma categoria criada ainda.</p>
+              <p className="text-xs opacity-60">Toque em "Nova" para adicionar.</p>
             </div>
-          </div>
+          )}
         </div>
       </SheetContent>
     </Sheet>
