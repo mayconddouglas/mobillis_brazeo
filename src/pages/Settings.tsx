@@ -528,7 +528,11 @@ function WalletsSheet({ isPro }: { isPro: boolean }) {
                       <p className="text-xs text-muted-foreground">{w.type === 'checking' ? 'Conta Corrente' : w.type === 'savings' ? 'Poupança' : 'Cartão de Crédito'}</p>
                     </div>
                   </div>
-                  <Button variant="ghost" size="icon" onClick={() => deleteWallet(w.id)}>
+                  <Button variant="ghost" size="icon" onClick={() => {
+                    if (window.confirm(`Excluir a conta "${w.name}"?\nEsta ação é irreversível e pode afetar o histórico de transações.`)) {
+                      deleteWallet(w.id);
+                    }
+                  }}>
                     <Trash2 size={16} className="text-red-500" />
                   </Button>
                 </CardContent>

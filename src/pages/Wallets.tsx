@@ -189,6 +189,8 @@ export default function Wallets() {
   };
 
   const handleDelete = async (id: string) => {
+    const wallet = wallets?.find(w => w.id === id);
+    if (!window.confirm(`Excluir a conta "${wallet?.name ?? 'esta conta'}"?\nEsta ação é irreversível e pode afetar o histórico de transações.`)) return;
     await deleteWallet(id);
     setIsModalOpen(false);
   };
